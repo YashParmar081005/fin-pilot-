@@ -1,78 +1,222 @@
 import { useEffect, useState } from 'react';
-import { formatINR, healthResponseSchema, type HealthResponse } from '@finpilot/shared';
+import { api, RequestError, setAccessToken, setCompanyId } from './lib/api';
+import { AccountsTree, type AccountRow } from './features/accounts/AccountsTree';
 
-// Phase 0 shell — proves web ⇄ api ⇄ infra wiring and the shared contract package.
-// Real features (auth, dashboard, invoices…) arrive feature-sliced from Phase 2 onward.
+// Phase 4 shell: login → pick a company → chart-of-accounts tree.
+// The full feature-sliced UI stack (router, TanStack Query, Tailwind, RHF)
+// arrives with the document phases.
 
-const styles = {
+interface PublicUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
+interface CompanyRow {
+  id: string;
+  legalName: string;
+  role: { key: string; name: string };
+}
+
+const S: Record<string, React.CSSProperties> = {
   page: {
     fontFamily: 'system-ui, sans-serif',
     minHeight: '100vh',
-    display: 'grid',
-    placeItems: 'center',
     background: '#0F172A',
     color: '#E2E8F0',
-    margin: 0,
+    padding: '2rem',
   },
   card: {
     background: '#1E293B',
     borderRadius: 12,
-    padding: '2rem 2.5rem',
-    maxWidth: 460,
+    padding: '1.5rem 2rem',
+    maxWidth: 720,
+    margin: '0 auto',
     boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
   },
-  row: { display: 'flex', justifyContent: 'space-between', gap: '2rem', margin: '0.4rem 0' },
-} satisfies Record<string, React.CSSProperties>;
+  input: {
+    display: 'block',
+    width: '100%',
+    margin: '0.4rem 0 1rem',
+    padding: '0.55rem 0.75rem',
+    borderRadius: 8,
+    border: '1px solid #334155',
+    background: '#0F172A',
+    color: '#E2E8F0',
+    fontSize: '0.95rem',
+  },
+  button: {
+    padding: '0.55rem 1.2rem',
+    borderRadius: 8,
+    border: 'none',
+    background: '#0EA5E9',
+    color: '#082F49',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontSize: '0.95rem',
+  },
+  error: { color: '#FCA5A5', margin: '0.5rem 0' },
+  muted: { color: '#94A3B8' },
+};
 
-const badge = (ok: boolean): React.CSSProperties => ({
-  display: 'inline-block',
-  padding: '0.15rem 0.6rem',
-  borderRadius: 999,
-  fontSize: '0.8rem',
-  fontWeight: 600,
-  background: ok ? '#065F46' : '#7F1D1D',
-  color: ok ? '#6EE7B7' : '#FCA5A5',
-});
+function LoginForm({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const data = await api<{ accessToken: string; user: PublicUser }>(
+        'POST',
+        '/api/v1/auth/login',
+        { email, password },
+      );
+      setAccessToken(data.accessToken);
+      onLoggedIn(data.user);
+    } catch (err) {
+      setError(err instanceof RequestError ? err.error.message : 'Login failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit}>
+      <h1 style={{ marginTop: 0 }}>FinPilot AI</h1>
+      <p style={S.muted}>Sign in to your books.</p>
+      <label>
+        Email
+        <input
+          style={S.input}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </label>
+      <label>
+        Password
+        <input
+          style={S.input}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </label>
+      {error && <p style={S.error}>{error}</p>}
+      <button style={S.button} disabled={busy} type="submit">
+        {busy ? 'Signing in…' : 'Sign in'}
+      </button>
+    </form>
+  );
+}
+
+function AccountsPage({ company, onBack }: { company: CompanyRow; onBack: () => void }) {
+  const [accounts, setAccounts] = useState<AccountRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function load() {
+    try {
+      const data = await api<{ accounts: AccountRow[] }>('GET', '/api/v1/accounts');
+      setAccounts(data.accounts);
+    } catch (err) {
+      setError(err instanceof RequestError ? err.error.message : 'Failed to load accounts');
+    }
+  }
+
+  useEffect(() => {
+    void load();
+  }, [company.id]);
+
+  async function seed() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api('POST', '/api/v1/accounts/import-template');
+      await load();
+    } catch (err) {
+      setError(err instanceof RequestError ? err.error.message : 'Seed failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <button onClick={onBack} style={{ ...S.button, background: '#334155', color: '#E2E8F0' }}>
+        ← companies
+      </button>
+      <h2 style={{ marginBottom: 4 }}>{company.legalName}</h2>
+      <p style={S.muted}>
+        Chart of accounts · {accounts?.length ?? '…'} accounts · your role: {company.role.name}
+      </p>
+      {error && <p style={S.error}>{error}</p>}
+      {accounts && accounts.length === 0 && (
+        <button style={S.button} onClick={seed} disabled={busy}>
+          {busy ? 'Seeding…' : 'Seed the Indian SME chart (60 accounts)'}
+        </button>
+      )}
+      {accounts && accounts.length > 0 && <AccountsTree accounts={accounts} />}
+    </div>
+  );
+}
 
 export function App() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
+  const [user, setUser] = useState<PublicUser | null>(null);
+  const [companies, setCompanies] = useState<CompanyRow[] | null>(null);
+  const [company, setCompany] = useState<CompanyRow | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/healthz')
-      .then((r) => r.json())
-      .then((data) => setHealth(healthResponseSchema.parse(data)))
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'unreachable'));
-  }, []);
+    if (!user) return;
+    api<{ companies: CompanyRow[] }>('GET', '/api/v1/companies')
+      .then((d) => setCompanies(d.companies))
+      .catch((err) =>
+        setError(err instanceof RequestError ? err.error.message : 'Failed to load companies'),
+      );
+  }, [user]);
+
+  function pick(c: CompanyRow) {
+    setCompanyId(c.id);
+    setCompany(c);
+  }
 
   return (
-    <div style={styles.page}>
-      <main style={styles.card}>
-        <h1 style={{ marginTop: 0 }}>FinPilot AI</h1>
-        <p style={{ color: '#94A3B8' }}>
-          Phase 0 — repo and rails. Shared contract check: {formatINR(150000)}
-        </p>
-        {error && <p style={badge(false)}>API unreachable: {error}</p>}
-        {health && (
-          <>
-            <div style={styles.row}>
-              <span>API</span>
-              <span style={badge(health.status === 'ok')}>{health.status}</span>
-            </div>
-            <div style={styles.row}>
-              <span>MongoDB (replica set)</span>
-              <span style={badge(health.components.mongo === 'connected')}>
-                {health.components.mongo}
-              </span>
-            </div>
-            <div style={styles.row}>
-              <span>Redis</span>
-              <span style={badge(health.components.redis === 'connected')}>
-                {health.components.redis}
-              </span>
-            </div>
-          </>
+    <div style={S.page}>
+      <main style={S.card}>
+        {!user && <LoginForm onLoggedIn={setUser} />}
+        {user && !company && (
+          <div>
+            <h1 style={{ marginTop: 0 }}>Choose a company</h1>
+            <p style={S.muted}>Signed in as {user.email}</p>
+            {error && <p style={S.error}>{error}</p>}
+            {companies?.length === 0 && (
+              <p style={S.muted}>No companies yet — create one via the API for now.</p>
+            )}
+            {companies?.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => pick(c)}
+                style={{
+                  ...S.button,
+                  display: 'block',
+                  width: '100%',
+                  margin: '0.5rem 0',
+                  textAlign: 'left',
+                }}
+              >
+                {c.legalName} <span style={{ fontWeight: 400 }}>— {c.role.name}</span>
+              </button>
+            ))}
+          </div>
         )}
+        {user && company && <AccountsPage company={company} onBack={() => setCompany(null)} />}
       </main>
     </div>
   );

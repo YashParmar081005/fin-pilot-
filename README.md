@@ -57,4 +57,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 1     | Error, response, request rails (envelope, AppError, requestId)    | ✅     |
 | 2     | Auth (argon2id, refresh rotation + reuse detection, 2FA, lockout) | ✅     |
 | 3     | Tenancy and RBAC (tenant plugin, roles, invites, perm cache)      | ✅     |
-| 4     | Chart of accounts                                                 | next   |
+| 4     | Chart of accounts (60-account Indian SME COA, tree UI)            | ✅     |
+| 5     | The General Ledger engine                                         | next   |
