@@ -35,6 +35,16 @@ const envSchema = z.object({
   JWT_ACCESS_TTL: z.string().default('15m'),
   JWT_REFRESH_TTL: z.string().default('30d'),
 
+  // REQUIRED — AES-256-GCM key for TOTP secrets at rest (§17.3). 64 hex chars.
+  // Production replaces this with a KMS-held DEK (ENCRYPTION_KEK_ARN).
+  ENCRYPTION_KEY: z
+    .string({ required_error: 'required — run `pnpm setup:env` or set it in .env.local' })
+    .regex(/^[0-9a-fA-F]{64}$/, 'must be 64 hex chars (generate: openssl rand -hex 32)'),
+
+  // argon2id parameters — OWASP 2024 minimum (§17.3)
+  ARGON2_MEMORY_KIB: z.coerce.number().int().positive().default(19456),
+  COOKIE_DOMAIN: z.string().optional(),
+
   // S3 / MinIO — optional until the documents phase
   S3_ENDPOINT: z.string().optional(),
   S3_BUCKET: z.string().optional(),
@@ -42,12 +52,12 @@ const envSchema = z.object({
   S3_SECRET_KEY: z.string().optional(),
   S3_REGION: z.string().optional(),
 
-  // Mail — optional until the auth phase (Mailhog in dev)
-  SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.coerce.number().int().positive().optional(),
-  MAIL_FROM: z.string().optional(),
+  // Mail — Mailhog in dev; Resend/SES in production
+  SMTP_HOST: z.string().default('localhost'),
+  SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  MAIL_FROM: z.string().default('FinPilot <no-reply@finpilot.local>'),
 
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 
 export type Env = z.infer<typeof envSchema>;

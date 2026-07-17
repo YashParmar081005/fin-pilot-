@@ -18,7 +18,7 @@
     "noEmit": true,
     // FAT32 drive: pnpm cannot symlink workspace packages, so internal packages
     // resolve via path aliases instead of node_modules. Same import specifiers.
-    "baseUrl": ".",
+    // (paths are relative to this file; baseUrl intentionally omitted — deprecated in TS 7)
     "paths": {
       "@finpilot/shared": ["../shared/src/index.ts"],
       "@finpilot/shared/*": ["../shared/src/*"]

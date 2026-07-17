@@ -18,6 +18,7 @@ if (existsSync(target)) {
 
 let env = readFileSync(resolve(root, '.env.example'), 'utf8');
 env = env.replace(/^JWT_ACCESS_SECRET=$/m, `JWT_ACCESS_SECRET=${randomBytes(32).toString('hex')}`);
+env = env.replace(/^ENCRYPTION_KEY=$/m, `ENCRYPTION_KEY=${randomBytes(32).toString('hex')}`);
 
 writeFileSync(target, env);
-console.log('Created .env.local with a generated JWT_ACCESS_SECRET.');
+console.log('Created .env.local with generated JWT_ACCESS_SECRET and ENCRYPTION_KEY.');

@@ -26,3 +26,8 @@ Thumbs.db
 
 # docker volumes (if ever mapped locally)
 .data/
+
+# FAT32 corruption zombie — inaccessible phantom directory left by a failed
+# rebase on 2026-07-17. The package now lives at packages/presets. Delete this
+# entry once the directory is removed (reboot, or `chkdsk E: /f` as admin).
+packages/config/

@@ -25,7 +25,9 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "esbuild"
+      "argon2",
+      "esbuild",
+      "mongodb-memory-server"
     ]
   },
   "lint-staged": {

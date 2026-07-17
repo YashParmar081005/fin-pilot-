@@ -31,7 +31,7 @@ Verify:
 
 ```
 packages/shared    the contract — Zod schemas, money helpers, permissions, constants (FE + BE)
-packages/config    shared tsconfig / eslint / prettier presets
+packages/presets   shared tsconfig / eslint / prettier presets
 apps/api           Express 5 API + worker (PROCESS_TYPE=api|ws|worker selects the entrypoint)
 apps/web           React 19 + Vite 6 SPA
 ```
@@ -49,4 +49,11 @@ apps/web           React 19 + Vite 6 SPA
 
 ## Build phases
 
-Development follows the 24-phase plan in plan.md §32. Current status: **Phase 0 — Repo and rails** ✅
+Development follows the 24-phase plan in plan.md §32.
+
+| Phase | Scope                                                             | Status |
+| ----- | ----------------------------------------------------------------- | ------ |
+| 0     | Repo and rails (monorepo, docker infra, env validation)           | ✅     |
+| 1     | Error, response, request rails (envelope, AppError, requestId)    | ✅     |
+| 2     | Auth (argon2id, refresh rotation + reuse detection, 2FA, lockout) | ✅     |
+| 3     | Tenancy and RBAC                                                  | next   |

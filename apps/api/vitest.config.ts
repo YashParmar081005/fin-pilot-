@@ -13,7 +13,10 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.spec.ts'],
     environment: 'node',
+    setupFiles: ['tests/setup.ts'],
     // worker threads, not forked processes — child-process spawn is flaky on this FAT32 drive
     pool: 'threads',
+    testTimeout: 30_000,
+    hookTimeout: 120_000, // first mongodb-memory-server run downloads a mongod binary
   },
 });

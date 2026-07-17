@@ -3,6 +3,7 @@ import { parseEnv } from '../../src/config/env';
 
 const VALID = {
   JWT_ACCESS_SECRET: 'a'.repeat(64),
+  ENCRYPTION_KEY: 'c'.repeat(64),
 };
 
 describe('parseEnv (plan.md §7 — throw at boot)', () => {
@@ -22,7 +23,14 @@ describe('parseEnv (plan.md §7 — throw at boot)', () => {
   });
 
   it('rejects a too-short JWT_ACCESS_SECRET', () => {
-    expect(() => parseEnv({ JWT_ACCESS_SECRET: 'short' })).toThrowError(/at least 32 characters/);
+    expect(() => parseEnv({ ...VALID, JWT_ACCESS_SECRET: 'short' })).toThrowError(
+      /at least 32 characters/,
+    );
+  });
+
+  it('fails readably when ENCRYPTION_KEY is missing or malformed', () => {
+    expect(() => parseEnv({ JWT_ACCESS_SECRET: 'a'.repeat(64) })).toThrowError(/ENCRYPTION_KEY/);
+    expect(() => parseEnv({ ...VALID, ENCRYPTION_KEY: 'nothex' })).toThrowError(/64 hex chars/);
   });
 
   it('coerces numeric strings (PORT) and rejects garbage', () => {
