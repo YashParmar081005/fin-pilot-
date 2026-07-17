@@ -1,0 +1,6 @@
+# Prettier enforces LF (endOfLine: lf) — keep git from converting to CRLF on Windows checkouts.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

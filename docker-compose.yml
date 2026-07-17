@@ -1,0 +1,70 @@
+# Dev infrastructure (plan.md §6, §7).
+# Mongo runs as a 1-node REPLICA SET — rs.initiate() is part of `docker compose up` (§4.2).
+# A standalone mongod cannot start a session; transactions would fail.
+
+services:
+  mongo:
+    image: mongo:8
+    container_name: finpilot-mongo
+    command: ['--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Initiates the replica set on first run; reports healthy once a PRIMARY exists.
+      test: |
+        mongosh --quiet --eval "
+          try { rs.status() } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }) }
+          if (rs.status().members[0].stateStr !== 'PRIMARY') quit(1)
+        "
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: finpilot-redis
+    command: ['redis-server', '--appendonly', 'yes']
+    # host 6380 — 6379 is taken by another project's redis on this machine
+    ports:
+      - '6380:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: finpilot-minio
+    command: ['server', '/data', '--console-address', ':9001']
+    environment:
+      MINIO_ROOT_USER: finpilot
+      MINIO_ROOT_PASSWORD: finpilot-dev-secret
+    # host 9100/9101 — 9000/9001 are taken by another project's minio on this machine
+    ports:
+      - '9100:9000'
+      - '9101:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: finpilot-mailhog
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # Web UI
+
+volumes:
+  mongo-data:
+  redis-data:
+  minio-data:

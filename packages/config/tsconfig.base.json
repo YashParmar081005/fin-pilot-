@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    // FAT32 drive: pnpm cannot symlink workspace packages, so internal packages
+    // resolve via path aliases instead of node_modules. Same import specifiers.
+    "baseUrl": ".",
+    "paths": {
+      "@finpilot/shared": ["../shared/src/index.ts"],
+      "@finpilot/shared/*": ["../shared/src/*"]
+    }
+  }
+}

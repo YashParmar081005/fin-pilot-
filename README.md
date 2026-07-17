@@ -1,0 +1,52 @@
+# FinPilot AI
+
+AI-native finance & accounting copilot for Indian SMEs.
+**Stack:** MERN (MongoDB · Express · React · Node.js) — pnpm workspace monorepo.
+
+> The single source of truth for this project is [plan.md](plan.md). The invariants live in [CLAUDE.md](CLAUDE.md) — read them before writing any code.
+
+## Prerequisites
+
+- Node.js ≥ 22
+- pnpm ≥ 10 (`npm i -g pnpm`)
+- Docker Desktop (Mongo **replica set**, Redis, MinIO, Mailhog run in containers)
+
+## Quick start
+
+```bash
+pnpm install
+pnpm setup:env          # seeds .env.local from .env.example with a generated JWT secret
+docker compose up -d    # mongo (1-node replica set, auto rs.initiate), redis, minio, mailhog
+pnpm dev                # boots api (:4000) + worker + web (:5173)
+```
+
+Verify:
+
+- `curl http://localhost:4000/healthz` → `200`
+- `docker compose exec mongo mongosh --quiet --eval "rs.status().members[0].stateStr"` → `PRIMARY`
+- Web: http://localhost:5173 · Mailhog: http://localhost:8025 · MinIO console: http://localhost:9101
+- Dev ports: api 4000 · redis 6380 · minio 9100/9101 (6379/9000 belong to another local project)
+
+## Workspace layout
+
+```
+packages/shared    the contract — Zod schemas, money helpers, permissions, constants (FE + BE)
+packages/config    shared tsconfig / eslint / prettier presets
+apps/api           Express 5 API + worker (PROCESS_TYPE=api|ws|worker selects the entrypoint)
+apps/web           React 19 + Vite 6 SPA
+```
+
+## Scripts
+
+| Command          | What it does                               |
+| ---------------- | ------------------------------------------ |
+| `pnpm dev`       | api + worker + web, watch mode             |
+| `pnpm test`      | Vitest across all workspaces               |
+| `pnpm lint`      | ESLint across all workspaces               |
+| `pnpm typecheck` | `tsc --noEmit` across all workspaces       |
+| `pnpm format`    | Prettier write                             |
+| `pnpm setup:env` | create `.env.local` with generated secrets |
+
+## Build phases
+
+Development follows the 24-phase plan in plan.md §32. Current status: **Phase 0 — Repo and rails** ✅
