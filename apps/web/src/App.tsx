@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, RequestError, setAccessToken, setCompanyId } from './lib/api';
 import { AccountsTree, type AccountRow } from './features/accounts/AccountsTree';
+import { JournalPage } from './features/journal/JournalPage';
 
 // Phase 4 shell: login → pick a company → chart-of-accounts tree.
 // The full feature-sliced UI stack (router, TanStack Query, Tailwind, RHF)
@@ -120,6 +121,7 @@ function AccountsPage({ company, onBack }: { company: CompanyRow; onBack: () => 
   const [accounts, setAccounts] = useState<AccountRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<'accounts' | 'journal'>('accounts');
 
   async function load() {
     try {
@@ -154,15 +156,33 @@ function AccountsPage({ company, onBack }: { company: CompanyRow; onBack: () => 
       </button>
       <h2 style={{ marginBottom: 4 }}>{company.legalName}</h2>
       <p style={S.muted}>
-        Chart of accounts · {accounts?.length ?? '…'} accounts · your role: {company.role.name}
+        {accounts?.length ?? '…'} accounts · your role: {company.role.name}
       </p>
+      <div style={{ display: 'flex', gap: 8, margin: '0.5rem 0 1rem' }}>
+        {(['accounts', 'journal'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              ...S.button,
+              background: tab === t ? '#0EA5E9' : '#334155',
+              color: tab === t ? '#082F49' : '#E2E8F0',
+            }}
+          >
+            {t === 'accounts' ? 'Chart of accounts' : 'Journal'}
+          </button>
+        ))}
+      </div>
       {error && <p style={S.error}>{error}</p>}
-      {accounts && accounts.length === 0 && (
+      {tab === 'accounts' && accounts && accounts.length === 0 && (
         <button style={S.button} onClick={seed} disabled={busy}>
           {busy ? 'Seeding…' : 'Seed the Indian SME chart (60 accounts)'}
         </button>
       )}
-      {accounts && accounts.length > 0 && <AccountsTree accounts={accounts} />}
+      {tab === 'accounts' && accounts && accounts.length > 0 && (
+        <AccountsTree accounts={accounts} />
+      )}
+      {tab === 'journal' && accounts && <JournalPage accounts={accounts} />}
     </div>
   );
 }

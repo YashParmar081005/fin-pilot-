@@ -83,6 +83,20 @@ export interface TaxSplitPaise {
 }
 
 /**
+ * The §12.3 canonical API. Never `totalTax / 2` twice — floor + subtract puts
+ * the odd paise on SGST deterministically, so two runs on the same input
+ * produce identical journals.
+ */
+export function splitGstPaise(
+  taxablePaise: number,
+  rate: number,
+  isInterState: boolean,
+): { igst: number; cgst: number; sgst: number } {
+  const split = splitTaxPaise(taxablePaise, rate, !isInterState);
+  return { igst: split.igstPaise, cgst: split.cgstPaise, sgst: split.sgstPaise };
+}
+
+/**
  * Splits GST on a taxable amount (plan.md §29.2 gst.spec):
  * - intra-state → CGST + SGST, exactly half each, the odd paise goes to SGST
  * - inter-state → IGST only

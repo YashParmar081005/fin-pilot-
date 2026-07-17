@@ -58,4 +58,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 2     | Auth (argon2id, refresh rotation + reuse detection, 2FA, lockout) | ✅     |
 | 3     | Tenancy and RBAC (tenant plugin, roles, invites, perm cache)      | ✅     |
 | 4     | Chart of accounts (60-account Indian SME COA, tree UI)            | ✅     |
-| 5     | The General Ledger engine                                         | next   |
+| 5     | General Ledger engine (post/reverse/TB, gapless numbers, I2–I4)   | ✅     |
+| 6     | Parties and items                                                 | next   |

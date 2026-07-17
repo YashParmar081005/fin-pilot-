@@ -6,3 +6,4 @@ export * from './schemas/health.schema';
 export * from './schemas/auth.schema';
 export * from './schemas/company.schema';
 export * from './schemas/account.schema';
+export * from './schemas/journal.schema';

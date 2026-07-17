@@ -9,6 +9,17 @@ import { connectMongo, disconnectMongo, mongoStatus } from './config/db';
 import type { Env } from './config/env';
 import { logger } from './config/logger';
 import { closeRedis, getRedis, redisStatus } from './config/redis';
+import { runLedgerIntegrityJob } from './jobs/ledgerIntegrity';
+
+/** ms until the next 02:15 IST (§12.5). */
+function msUntilNextIntegrityRun(now = new Date()): number {
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+  const ist = new Date(now.getTime() + IST_OFFSET_MS);
+  const next = new Date(ist);
+  next.setUTCHours(2, 15, 0, 0);
+  if (next <= ist) next.setUTCDate(next.getUTCDate() + 1);
+  return next.getTime() - ist.getTime();
+}
 
 export async function startWorker(env: Env): Promise<void> {
   await connectMongo(env);
@@ -34,9 +45,20 @@ export async function startWorker(env: Env): Promise<void> {
 
   const heartbeat = setInterval(() => logger.debug('worker heartbeat'), 60_000);
 
+  // Nightly ledger integrity (§12.5) — BullMQ repeatable jobs take over in
+  // the queues phase; until then a plain timer keeps the guarantee alive.
+  let integrityTimer: NodeJS.Timeout = setTimeout(function run() {
+    runLedgerIntegrityJob()
+      .catch((err) => logger.error({ err }, 'ledger integrity job failed'))
+      .finally(() => {
+        integrityTimer = setTimeout(run, 24 * 60 * 60 * 1000);
+      });
+  }, msUntilNextIntegrityRun());
+
   const shutdown = async (signal: string) => {
     logger.info({ signal }, 'worker shutting down');
     clearInterval(heartbeat);
+    clearTimeout(integrityTimer);
     health.close();
     await closeRedis();
     await disconnectMongo();

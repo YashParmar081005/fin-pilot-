@@ -22,15 +22,28 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       # I8 escape hatch is greppable (plan.md §9.1): skipTenantScope may only
-      # appear in the plugin itself, migrations/, jobs/, and services/admin/.
+      # appear in the plugin itself, engines/, migrations/, jobs/, services/admin/.
       - name: skipTenantScope gate
         run: |
           VIOLATIONS=$(grep -rn "skipTenantScope" apps/api/src \
             | grep -v "apps/api/src/plugins/tenantScope.ts" \
             | grep -v "apps/api/src/jobs/" \
+            | grep -v "apps/api/src/engines/" \
             | grep -v "apps/api/src/services/admin/" || true)
           if [ -n "$VIOLATIONS" ]; then
             echo "skipTenantScope outside allowed paths:"; echo "$VIOLATIONS"; exit 1
+          fi
+      # I3: GeneralLedger is the SOLE writer to journalentries. The model may
+      # only be imported by the engine, the read-only service/jobs, and tests.
+      - name: journalentries sole-writer gate
+        run: |
+          VIOLATIONS=$(grep -rln "models/JournalEntry" apps/api/src \
+            | grep -v "apps/api/src/engines/ledger/" \
+            | grep -v "apps/api/src/models/JournalEntry.ts" \
+            | grep -v "apps/api/src/jobs/ledgerIntegrity.ts" \
+            | grep -v "apps/api/src/services/journalService.ts" || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "JournalEntry imported outside allowed modules:"; echo "$VIOLATIONS"; exit 1
           fi
 
   test:

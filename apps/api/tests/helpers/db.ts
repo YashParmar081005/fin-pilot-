@@ -32,8 +32,9 @@ export async function connectTestDb(): Promise<void> {
   } else if (
     !(await tryConnect('mongodb://localhost:27017/?replicaSet=rs0&directConnection=true', dbName))
   ) {
-    const { MongoMemoryServer } = await import('mongodb-memory-server');
-    const server = await MongoMemoryServer.create();
+    // replSet mode (plan §29.1) — the ledger's transactions need a replica set
+    const { MongoMemoryReplSet } = await import('mongodb-memory-server');
+    const server = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
     memoryServer = server;
     await mongoose.connect(server.getUri(), { dbName });
   }
