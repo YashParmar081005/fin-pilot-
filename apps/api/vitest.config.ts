@@ -16,6 +16,9 @@ export default defineConfig({
     setupFiles: ['tests/setup.ts'],
     // worker threads, not forked processes — child-process spawn is flaky on this FAT32 drive
     pool: 'threads',
+    // one file at a time: parallel argon2 load makes the §17.3 timing-parity
+    // assertion (±10%) noisy
+    fileParallelism: false,
     testTimeout: 30_000,
     hookTimeout: 120_000, // first mongodb-memory-server run downloads a mongod binary
   },

@@ -56,4 +56,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 0     | Repo and rails (monorepo, docker infra, env validation)           | ✅     |
 | 1     | Error, response, request rails (envelope, AppError, requestId)    | ✅     |
 | 2     | Auth (argon2id, refresh rotation + reuse detection, 2FA, lockout) | ✅     |
-| 3     | Tenancy and RBAC                                                  | next   |
+| 3     | Tenancy and RBAC (tenant plugin, roles, invites, perm cache)      | ✅     |
+| 4     | Chart of accounts                                                 | next   |

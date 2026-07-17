@@ -1,16 +1,20 @@
 /**
- * Test database helper. Preference order:
+ * Test database helper. Each spec file gets its OWN database name — vitest
+ * runs files in parallel workers, and a shared db + dropDatabase would race.
+ *
+ * Connection preference:
  * 1. TEST_MONGO_URI env (explicit)
  * 2. the local docker-compose mongo (fast, no download)
  * 3. mongodb-memory-server (CI — downloads a mongod binary on first run)
  */
+import { randomBytes } from 'node:crypto';
 import mongoose from 'mongoose';
 
 let memoryServer: { stop(): Promise<unknown> } | null = null;
 
-async function tryConnect(uri: string): Promise<boolean> {
+async function tryConnect(uri: string, dbName: string): Promise<boolean> {
   try {
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 1_500 });
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 1_500, dbName });
     return true;
   } catch {
     return false;
@@ -18,20 +22,21 @@ async function tryConnect(uri: string): Promise<boolean> {
 }
 
 export async function connectTestDb(): Promise<void> {
+  const dbName = `finpilot-test-${randomBytes(4).toString('hex')}`;
   const explicit = process.env.TEST_MONGO_URI;
+
   if (explicit) {
-    if (!(await tryConnect(explicit))) throw new Error(`cannot reach TEST_MONGO_URI: ${explicit}`);
+    if (!(await tryConnect(explicit, dbName))) {
+      throw new Error(`cannot reach TEST_MONGO_URI: ${explicit}`);
+    }
   } else if (
-    !(await tryConnect(
-      'mongodb://localhost:27017/finpilot-test?replicaSet=rs0&directConnection=true',
-    ))
+    !(await tryConnect('mongodb://localhost:27017/?replicaSet=rs0&directConnection=true', dbName))
   ) {
     const { MongoMemoryServer } = await import('mongodb-memory-server');
     const server = await MongoMemoryServer.create();
     memoryServer = server;
-    await mongoose.connect(server.getUri('finpilot-test'));
+    await mongoose.connect(server.getUri(), { dbName });
   }
-  await mongoose.connection.dropDatabase();
 }
 
 export async function disconnectTestDb(): Promise<void> {

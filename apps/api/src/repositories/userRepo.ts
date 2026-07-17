@@ -1,4 +1,4 @@
-import type { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { User, type UserDoc } from '../models/User';
 
 export const userRepo = {
@@ -30,15 +30,32 @@ export const userRepo = {
     return User.findById(id).select('+passwordHash +totpSecretEnc +recoveryCodeHashes').lean();
   },
 
-  async recordFailedLogin(id: Types.ObjectId, lockAt: number, lockMs: number): Promise<void> {
-    const user = await User.findByIdAndUpdate(
-      id,
-      { $inc: { failedLoginCount: 1 } },
-      { new: true },
-    ).lean();
-    if (user && user.failedLoginCount >= lockAt) {
-      await User.updateOne({ _id: id }, { lockedUntil: new Date(Date.now() + lockMs) });
-    }
+  /**
+   * One round trip, always — an aggregation-pipeline update increments the
+   * counter and sets lockedUntil in the same operation. Constant cost matters:
+   * the login timing-parity guarantee (§17.3) depends on this path costing
+   * the same as recordFailedLoginDummy below.
+   */
+  recordFailedLogin(id: Types.ObjectId, lockAt: number, lockMs: number): Promise<unknown> {
+    return User.updateOne({ _id: id }, [
+      {
+        $set: {
+          failedLoginCount: { $add: ['$failedLoginCount', 1] },
+          lockedUntil: {
+            $cond: [
+              { $gte: [{ $add: ['$failedLoginCount', 1] }, lockAt] },
+              new Date(Date.now() + lockMs),
+              '$lockedUntil',
+            ],
+          },
+        },
+      },
+    ]);
+  },
+
+  /** Timing pad for the unknown-email path — same query shape, matches nothing. */
+  recordFailedLoginDummy(lockAt: number, lockMs: number): Promise<unknown> {
+    return this.recordFailedLogin(new Types.ObjectId(), lockAt, lockMs);
   },
 
   recordSuccessfulLogin(id: Types.ObjectId): Promise<unknown> {

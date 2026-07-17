@@ -26,6 +26,17 @@ export function errorHandler(
   if (err instanceof ZodError) {
     return res.status(422).json(errorBody('SYS_VALIDATION_FAILED', err.flatten(), requestId));
   }
+  // body-parser rejects malformed JSON with an exposable 400 SyntaxError —
+  // a client mistake, not a server error.
+  if (
+    err instanceof SyntaxError &&
+    'statusCode' in err &&
+    (err as { statusCode?: number }).statusCode === 400
+  ) {
+    return res
+      .status(400)
+      .json(errorBody('SYS_VALIDATION_FAILED', { body: 'malformed JSON' }, requestId));
+  }
   if (err instanceof AppError) {
     return res.status(err.status).json(errorBody(err.code, err.details, requestId));
   }

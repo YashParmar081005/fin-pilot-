@@ -10,6 +10,7 @@ export const PERMISSIONS = [
   // org / company administration
   'company:create',
   'company:delete',
+  'company:update',
   'user:invite',
   'role:assign',
   // ledger

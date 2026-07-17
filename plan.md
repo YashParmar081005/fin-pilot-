@@ -3179,3 +3179,4 @@ db.aitoolcalls.createIndex({ createdAt: 1 }, { expireAfterSeconds: 15552000 })
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-07-10 | Initial specification. MERN adaptation of the FinPilot AI overview, with GST 2.0 slabs, IMS (mandatory from 01-04-2026), Account Aggregator banking, and full system-design layer. |
+| 1.0.1 | 2026-07-17 | §9 GSTIN regex corrected: the original `/^\d{2}[A-Z]{5}\d{4}[A-Z]\d[A-Z\d][Z][A-Z\d]$/` requires 16 characters and rejects every valid 15-char GSTIN. Canonical form is state(2) + PAN(10) + entity code + 'Z' + checksum → `/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/`. Applied in `Company` model and shared Zod schema (checksum validation still lands in Phase 6). Also: `packages/config` renamed to `packages/presets` (filesystem constraint on the dev machine). |

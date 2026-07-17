@@ -26,6 +26,20 @@ const LOCK_DURATION_MS = 15 * 60 * 1000;
 const VERIFICATION_TTL_MS = 60 * 60 * 1000; // 1 hour (§17.3)
 const RECOVERY_CODE_COUNT = 10;
 
+/**
+ * Every failed login responds in the SAME wall-clock time (§17.3: response
+ * time must not leak account existence). The dummy verify + dummy write make
+ * the paths structurally equal; this floor absorbs the residual micro-cost
+ * differences deterministically.
+ */
+const MIN_FAILED_LOGIN_MS = 200;
+
+async function padFailure(startedAt: bigint): Promise<void> {
+  const elapsedMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
+  const waitMs = MIN_FAILED_LOGIN_MS - elapsedMs;
+  if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs));
+}
+
 export interface ClientInfo {
   userAgent?: string;
   ip?: string;
@@ -116,15 +130,21 @@ export const authService = {
     input: { email: string; password: string; totp?: string },
     client: ClientInfo,
   ): Promise<AuthResult> {
+    const startedAt = process.hrtime.bigint();
     const user = await userRepo.findByEmailWithSecrets(input.email);
 
     if (!user) {
-      // Timing safety (§17.3): burn the same argon2 cost as a real verify.
+      // Timing safety (§17.3): burn the same argon2 AND the same DB write
+      // as the real wrong-password path — response time must not leak
+      // account existence.
       await dummyVerify(input.password);
+      await userRepo.recordFailedLoginDummy(LOCK_AFTER_FAILURES, LOCK_DURATION_MS);
+      await padFailure(startedAt);
       throw new AppError('AUTH_INVALID_CREDENTIALS', 401);
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
+      await padFailure(startedAt);
       throw new AppError('AUTH_ACCOUNT_LOCKED', 423, {
         retryAt: user.lockedUntil.toISOString(),
       });
@@ -133,14 +153,19 @@ export const authService = {
     const passwordOk = await verifyPassword(user.passwordHash!, input.password);
     if (!passwordOk) {
       await userRepo.recordFailedLogin(user._id, LOCK_AFTER_FAILURES, LOCK_DURATION_MS);
+      await padFailure(startedAt);
       throw new AppError('AUTH_INVALID_CREDENTIALS', 401);
     }
 
     if (user.totpEnabledAt) {
-      if (!input.totp) throw new AppError('AUTH_TOTP_REQUIRED', 401);
+      if (!input.totp) {
+        await padFailure(startedAt);
+        throw new AppError('AUTH_TOTP_REQUIRED', 401);
+      }
       const ok = await this.verifySecondFactor(user, input.totp);
       if (!ok) {
         await userRepo.recordFailedLogin(user._id, LOCK_AFTER_FAILURES, LOCK_DURATION_MS);
+        await padFailure(startedAt);
         throw new AppError('AUTH_TOTP_INVALID', 401);
       }
     }
