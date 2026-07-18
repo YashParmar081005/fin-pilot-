@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GST_STATE_CODES } from '../constants/gst';
+import { validateGstin } from '../gstin';
 
 /**
  * Company + membership request contracts (plan.md §9, §18.5).
@@ -14,11 +15,12 @@ const pan = z
 
 // 15 chars: state(2) + PAN(10) + entity code + literal 'Z' + checksum.
 // plan.md §9 had an off-by-one regex (16 chars) — corrected, see changelog.
+// Phase 6 upgraded this from format-only to full checksum validation.
 const gstin = z
   .string()
   .trim()
   .toUpperCase()
-  .regex(/^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/, 'Invalid GSTIN format');
+  .refine(validateGstin, 'Invalid GSTIN (checksum failed)');
 
 const stateCode = z
   .string()

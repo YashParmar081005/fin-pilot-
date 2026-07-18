@@ -41,7 +41,7 @@ async function registerAndLogin(email: string, name: string): Promise<string> {
 const COMPANY_BODY = {
   legalName: 'Vadodara Textiles Pvt Ltd',
   stateCode: '24',
-  gstin: '24AAAAA0000A1Z5',
+  gstin: '24AAAAA0000A1Z8',
   pan: 'AAAAA0000A',
   booksBeginDate: '2026-04-01',
 };

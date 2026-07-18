@@ -25,6 +25,18 @@ export function isValidGstRateOn(rate: number, date: Date | string): boolean {
   return gstSlabsOn(date).includes(rate);
 }
 
+/** The §14.1 canonical shapes. */
+export const GST_RATE_SLABS = GST_SLABS_CURRENT;
+
+export const RATE_HISTORY: ReadonlyArray<{ effectiveFrom: string; slabs: readonly number[] }> = [
+  { effectiveFrom: '2017-07-01', slabs: GST_SLABS_LEGACY },
+  { effectiveFrom: GST2_EFFECTIVE_FROM, slabs: GST_SLABS_CURRENT },
+];
+
+export function rateIsValidOn(rate: number, date: Date | string): boolean {
+  return isValidGstRateOn(rate, date);
+}
+
 /**
  * GST state codes — the first two digits of a GSTIN. '24' = Gujarat.
  * Drives IGST vs CGST+SGST (place-of-supply, §14).
