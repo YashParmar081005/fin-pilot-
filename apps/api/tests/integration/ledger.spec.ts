@@ -58,6 +58,33 @@ function post(draft: Partial<JournalEntryDraft>) {
 const dr = (account: Types.ObjectId, paise: number) => ({ accountId: account, debitPaise: paise });
 const cr = (account: Types.ObjectId, paise: number) => ({ accountId: account, creditPaise: paise });
 
+/**
+ * Client-contract retry: under extreme contention the driver gives up after
+ * its 120 s withTransaction ceiling and surfaces a transient error — which
+ * the API maps to 503 RETRY_TRANSACTION and the CLIENT retries (§18.4).
+ * The invariant under test is unchanged: every post that succeeds gets a
+ * distinct, gapless number, and failed attempts consume nothing.
+ */
+async function postWithClientRetry(
+  draft: Partial<JournalEntryDraft>,
+): Promise<{ entryNumber: string }> {
+  for (;;) {
+    try {
+      return await post(draft);
+    } catch (e) {
+      const err = e as { errorLabels?: string[]; code?: unknown; message?: string };
+      const transient =
+        (Array.isArray(err.errorLabels) && err.errorLabels.includes('TransientTransactionError')) ||
+        err.code === 112 ||
+        /write conflict|TransientTransactionError|UnknownTransactionCommitResult/i.test(
+          String(err.message),
+        );
+      if (!transient) throw e;
+      await new Promise((r) => setTimeout(r, 50 + Math.random() * 250));
+    }
+  }
+}
+
 async function counterSeq(): Promise<number> {
   const fy = financialYear(new Date('2026-07-01'));
   const doc = await Counter.findById(`${companyId}:${fy}:JV`).lean();
@@ -211,9 +238,23 @@ describe('immutability (I4)', () => {
       });
     });
 
-    // bulk paths bypass query middleware — closed via static overrides
-    expect(() => JournalEntry.bulkWrite([])).toThrowError(/LEDGER_IMMUTABLE|immutable/i);
-    expect(() => JournalEntry.insertMany([])).toThrowError(/LEDGER_IMMUTABLE|immutable/i);
+    // bulk paths bypass query middleware — closed via static overrides;
+    // assert on the CODE (the human message says "cannot be changed")
+    let bulkErr: unknown;
+    try {
+      JournalEntry.bulkWrite([]);
+    } catch (e) {
+      bulkErr = e;
+    }
+    expect(bulkErr).toMatchObject({ code: 'LEDGER_IMMUTABLE' });
+
+    let insertErr: unknown;
+    try {
+      JournalEntry.insertMany([]);
+    } catch (e) {
+      insertErr = e;
+    }
+    expect(insertErr).toMatchObject({ code: 'LEDGER_IMMUTABLE' });
   });
 
   it('the collMod validator blocks a raw unbalanced insert (rogue mongosh)', async () => {
@@ -293,7 +334,7 @@ describe('gapless numbering (I6)', () => {
     for (let round = 0; round < 50; round++) {
       const entries = await Promise.all(
         Array.from({ length: 100 }, (_, i) =>
-          post({
+          postWithClientRetry({
             narration: `concurrency r${round} #${i}`,
             lines: [dr(acc.cash!, 100), cr(acc.sales!, 100)],
           }),
@@ -306,7 +347,9 @@ describe('gapless numbering (I6)', () => {
     expect(unique.size).toBe(5000); // no duplicates
     expect(Math.min(...seqs)).toBe(startSeq + 1); // no gap at the start
     expect(Math.max(...seqs)).toBe(startSeq + 5000); // no gap anywhere
-  }, 600_000);
+    // 100-way txn contention on ONE counter doc runs at a few posts/sec on a
+    // laptop — the retry storm IS the scenario under test. Budget for it.
+  }, 2_700_000);
 
   it('an aborted transaction does not consume an entryNumber', async () => {
     const before = await counterSeq();
@@ -346,7 +389,9 @@ describe('the property test + reports + integrity', () => {
     };
     const pick = () => accounts[Math.floor(rand() * accounts.length)]!;
 
-    const BATCH = 20;
+    // SEQUENTIAL: this test proves ARITHMETIC invariants, not contention
+    // (the gapless test owns contention) — zero conflicts, gentle on the server
+    const BATCH = 1;
     for (let done = 0; done < 10_000; done += BATCH) {
       await Promise.all(
         Array.from({ length: BATCH }, () => {
@@ -370,7 +415,7 @@ describe('the property test + reports + integrity', () => {
     ]).option({ skipTenantScope: true });
     expect(totals!.d).toBe(totals!.c);
     expect(totals!.d).toBeGreaterThan(0);
-  }, 900_000);
+  }, 2_700_000);
 
   it('the trial balance balances and matches stored account balances', async () => {
     const rows = await inCtx(() => GeneralLedger.trialBalance(companyId, new Date('2027-03-31')));

@@ -14,7 +14,15 @@ let memoryServer: { stop(): Promise<unknown> } | null = null;
 
 async function tryConnect(uri: string, dbName: string): Promise<boolean> {
   try {
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 1_500, dbName });
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 1_500,
+      dbName,
+      // Bounded pool: 100 concurrent post() calls queue HERE, not on the
+      // server — a laptop's single-node RS suffocates (heartbeat timeouts)
+      // under 100 simultaneous w:majority j:true transactions. Production
+      // bounds this the same way (MONGO_MAX_POOL + rate limiting, §19).
+      maxPoolSize: 10,
+    });
     return true;
   } catch {
     return false;
