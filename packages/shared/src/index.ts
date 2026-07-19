@@ -11,3 +11,4 @@ export * from './schemas/journal.schema';
 export * from './schemas/party.schema';
 export * from './schemas/item.schema';
 export * from './schemas/invoice.schema';
+export * from './schemas/bill.schema';

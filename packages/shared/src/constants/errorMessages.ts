@@ -33,6 +33,8 @@ export const ERROR_MESSAGES: Partial<Record<ErrorCode, string>> = {
   GST_INVALID_GSTIN: 'The GSTIN is invalid (checksum failed).',
   GST_INVALID_RATE_FOR_DATE: 'This GST rate was not in force on the document date.',
   GST_HSN_DIGITS_INSUFFICIENT: 'HSN must be 6 digits once aggregate turnover exceeds ₹5 crore.',
+  DOC_SELF_APPROVAL_FORBIDDEN: 'You cannot approve your own submission.',
+  DOC_INVALID_STATE: 'This action is not allowed in the document’s current state.',
   DOC_CANNOT_EDIT_ISSUED: 'Issued documents cannot be edited. Cancel and re-issue instead.',
   DOC_CANNOT_CANCEL_PAID: 'A document with payments cannot be cancelled. Refund first.',
   DOC_ALREADY_ISSUED: 'This document has already been issued.',
