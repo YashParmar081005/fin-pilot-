@@ -68,4 +68,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 12    | GST returns (GSTR-1/3B, journal-entry trace, TB reconciliation)   | ✅     |
 | 13    | E-invoicing (async IRN, INV-01, 4xx/5xx semantics, 24h cancel)    | ✅     |
 | 14    | IMS (sync + bill matcher, push-back, pending cap, ITC alarm)      | ✅     |
-| 15    | Banking                                                           | next   |
+| 15    | Banking (CSV import + fingerprint dedupe, AA sandbox flow)        | ✅     |
+| 16    | Reconciliation                                                    | next   |

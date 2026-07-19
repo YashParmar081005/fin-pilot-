@@ -7,6 +7,7 @@ import { invoiceRoutes } from './invoice.routes';
 import { billRoutes, expenseRoutes } from './bill.routes';
 import { paymentRoutes, webhookRoutes } from './payment.routes';
 import { gstRoutes } from './gst.routes';
+import { bankingRoutes } from './banking.routes';
 import { companyRoutes, inviteRoutes } from './company.routes';
 
 export const v1Routes = Router();
@@ -24,3 +25,4 @@ v1Routes.use('/expenses', expenseRoutes);
 v1Routes.use('/payments', paymentRoutes);
 v1Routes.use('/webhooks', webhookRoutes);
 v1Routes.use('/gst', gstRoutes);
+v1Routes.use('/bank-accounts', bankingRoutes);
