@@ -9,10 +9,15 @@ import { logger } from './logger';
 
 const clients = new Map<string, Redis>();
 
-function createClient(env: Env, name: 'cache' | 'bull' | 'sub'): Redis {
+type RedisRole = 'cache' | 'bull' | 'sub' | 'ratelimit';
+
+function createClient(env: Env, name: RedisRole): Redis {
   const client = new Redis(env.REDIS_URL, {
     // BullMQ requires maxRetriesPerRequest: null on its connections.
-    maxRetriesPerRequest: name === 'bull' ? null : 2,
+    // The ratelimit client must FAIL FAST (§19.6): no offline queue, no
+    // retries — a hung limiter check is worse than a failed one.
+    maxRetriesPerRequest: name === 'bull' ? null : name === 'ratelimit' ? 0 : 2,
+    enableOfflineQueue: name !== 'ratelimit',
     retryStrategy: (times) => Math.min(times * 200, 5_000),
     lazyConnect: false,
   });
@@ -22,7 +27,7 @@ function createClient(env: Env, name: 'cache' | 'bull' | 'sub'): Redis {
   return client;
 }
 
-export function getRedis(env: Env, name: 'cache' | 'bull' | 'sub' = 'cache'): Redis {
+export function getRedis(env: Env, name: RedisRole = 'cache'): Redis {
   return clients.get(name) ?? createClient(env, name);
 }
 

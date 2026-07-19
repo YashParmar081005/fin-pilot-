@@ -52,6 +52,10 @@ const envSchema = z.object({
   S3_SECRET_KEY: z.string().optional(),
   S3_REGION: z.string().optional(),
 
+  // Rate limits (§19) — env-tunable so raising a limit needs no deploy
+  RL_L1_LIMIT: z.coerce.number().int().positive().default(300), // per IP per minute
+  RL_AUTH_LIMIT: z.coerce.number().int().positive().default(10), // credential attempts per IP per minute
+
   // Razorpay (§4.2 — the only payment provider in v1)
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),

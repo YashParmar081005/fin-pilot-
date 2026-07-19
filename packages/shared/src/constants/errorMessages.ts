@@ -46,6 +46,7 @@ export const ERROR_MESSAGES: Partial<Record<ErrorCode, string>> = {
   SYS_CONCURRENT_MODIFICATION: 'This record was changed by someone else. Reload and retry.',
   SYS_RETRY_TRANSACTION: 'A temporary conflict occurred. Please retry.',
   SYS_RATE_LIMIT_EXCEEDED: 'Too many requests. Slow down and retry shortly.',
+  SYS_SERVICE_UNAVAILABLE: 'The service is temporarily unavailable. Retry shortly.',
   SYS_NOT_FOUND: 'The requested resource was not found.',
   SYS_INTERNAL_ERROR: 'Something went wrong on our side. It has been logged.',
 };

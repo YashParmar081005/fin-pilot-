@@ -63,4 +63,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 7     | Invoicing (I5 totals, §12.2 GL posting, idempotency I7)           | ✅     |
 | 8     | Bills, expenses, approvals (ITC posting, no self-approval)        | ✅     |
 | 9     | Payments and allocation (advances + GST, Razorpay webhook)        | ✅     |
-| 10    | Rate limiting                                                     | next   |
+| 10    | Rate limiting (§19 layers, Lua, fail-open/closed, breakers)       | ✅     |
+| 11    | Queues (BullMQ, outbox publisher, DLQ)                            | next   |

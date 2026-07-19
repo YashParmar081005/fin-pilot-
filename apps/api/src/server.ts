@@ -14,6 +14,7 @@ import { getEnv } from './config/env';
 import { redisStatus } from './config/redis';
 import { errorHandler } from './middleware/errorHandler';
 import { httpLogger } from './middleware/httpLogger';
+import { globalRateLimit } from './middleware/rateLimit';
 import { requestId } from './middleware/requestId';
 import { v1Routes } from './routes/v1';
 import { errorBody } from './utils/respond';
@@ -44,6 +45,8 @@ export function buildApp(service: HealthResponse['service'] = 'api'): Express {
     }),
   );
   app.use(cookieParser());
+  // §5.3 #6 — L1 global per-IP limit, before authenticate; fails OPEN (§19.6)
+  app.use('/api', globalRateLimit);
 
   app.get('/healthz', (_req, res) => {
     const mongo = mongoStatus();

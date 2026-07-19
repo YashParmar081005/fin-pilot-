@@ -9,22 +9,30 @@ import {
 } from '@finpilot/shared';
 import { authController as ctrl } from '../../controllers/authController';
 import { authenticate } from '../../middleware/authenticate';
+import { authRateLimit } from '../../middleware/rateLimit';
 import { validate } from '../../middleware/validate';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 export const authRoutes = Router();
 
-authRoutes.post('/register', validate(registerSchema), asyncHandler(ctrl.register));
-authRoutes.post('/login', validate(loginSchema), asyncHandler(ctrl.login));
+// credential endpoints FAIL CLOSED when the limiter store is down (§19.6)
+authRoutes.post('/register', authRateLimit, validate(registerSchema), asyncHandler(ctrl.register));
+authRoutes.post('/login', authRateLimit, validate(loginSchema), asyncHandler(ctrl.login));
 authRoutes.post('/refresh', asyncHandler(ctrl.refresh));
 authRoutes.post('/logout', asyncHandler(ctrl.logout));
 authRoutes.post('/verify-email', validate(verifyEmailSchema), asyncHandler(ctrl.verifyEmail));
 authRoutes.post(
   '/forgot-password',
+  authRateLimit,
   validate(forgotPasswordSchema),
   asyncHandler(ctrl.forgotPassword),
 );
-authRoutes.post('/reset-password', validate(resetPasswordSchema), asyncHandler(ctrl.resetPassword));
+authRoutes.post(
+  '/reset-password',
+  authRateLimit,
+  validate(resetPasswordSchema),
+  asyncHandler(ctrl.resetPassword),
+);
 
 authRoutes.post('/2fa/setup', authenticate, asyncHandler(ctrl.totpSetup));
 authRoutes.post(

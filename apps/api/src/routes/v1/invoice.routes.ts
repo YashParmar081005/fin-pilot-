@@ -8,6 +8,7 @@ import { invoiceController as ctrl } from '../../controllers/invoiceController';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 import { idempotency } from '../../middleware/idempotency';
+import { userRateLimit } from '../../middleware/rateLimit';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -16,9 +17,11 @@ export const invoiceRoutes = Router();
 
 invoiceRoutes.use(authenticate, tenantResolve('header'));
 
-invoiceRoutes.get('/', authorize('report:read'), asyncHandler(ctrl.list));
+// §19.3 route costs: GET 1, POST 2 — fails OPEN when Redis is down (§19.6)
+invoiceRoutes.get('/', userRateLimit(1), authorize('report:read'), asyncHandler(ctrl.list));
 invoiceRoutes.post(
   '/',
+  userRateLimit(2),
   authorize('invoice:create'),
   idempotency,
   validate(createInvoiceSchema),

@@ -5,6 +5,7 @@
 import nodemailer, { type Transporter } from 'nodemailer';
 import { getEnv } from '../config/env';
 import { logger } from '../config/logger';
+import { guardOutbound, mailLimiter } from '../integrations/limiters';
 
 export interface SentMail {
   to: string;
@@ -25,14 +26,20 @@ function getTransporter(): Transporter {
   return transporter;
 }
 
+// L5 (§19.7): SMTP is an outbound client like any other — limited + breakered
+let guardedSend: ((mail: SentMail) => Promise<unknown>) | null = null;
+
 export async function sendMail(mail: SentMail): Promise<void> {
   const env = getEnv();
   if (env.NODE_ENV === 'test') {
     testOutbox.push(mail);
     return;
   }
+  guardedSend ??= guardOutbound('smtp', mailLimiter, (m: SentMail) =>
+    getTransporter().sendMail({ from: getEnv().MAIL_FROM, ...m }),
+  );
   try {
-    await getTransporter().sendMail({ from: env.MAIL_FROM, ...mail });
+    await guardedSend(mail);
   } catch (err) {
     // Mail must never take down an auth flow — log and continue.
     logger.error({ err, to: mail.to, subject: mail.subject }, 'mail send failed');
