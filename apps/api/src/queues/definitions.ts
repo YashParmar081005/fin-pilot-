@@ -8,6 +8,7 @@ import { z } from 'zod';
 export const QUEUES = {
   EMAIL: 'email',
   EINVOICE: 'einvoice.generate',
+  REPORT_EXPORT: 'report.export',
   EINVOICE_DEADLINE: 'cron.einvoice.deadline',
   LEDGER_INTEGRITY: 'cron.ledger.integrity',
   INVOICE_OVERDUE: 'cron.invoice.overdue',
@@ -27,6 +28,7 @@ export const JobSchemas = {
     invoiceId: z.string().length(24),
     companyId: z.string().length(24),
   }),
+  [QUEUES.REPORT_EXPORT]: z.object({ reportJobId: z.string().length(24) }),
   // cron payloads are empty — the job IS the schedule tick
   [QUEUES.EINVOICE_DEADLINE]: z.object({}).default({}),
   [QUEUES.LEDGER_INTEGRITY]: z.object({}).default({}),
@@ -42,6 +44,7 @@ export const QUEUE_POLICY: Record<
 > = {
   [QUEUES.EMAIL]: { concurrency: 20, attempts: 5, backoffMs: 2_000 },
   [QUEUES.EINVOICE]: { concurrency: 5, attempts: 6, backoffMs: 10_000 },
+  [QUEUES.REPORT_EXPORT]: { concurrency: 2, attempts: 2, backoffMs: 10_000 },
   [QUEUES.EINVOICE_DEADLINE]: { concurrency: 1, attempts: 1, backoffMs: 0 },
   [QUEUES.LEDGER_INTEGRITY]: { concurrency: 1, attempts: 1, backoffMs: 0 },
   [QUEUES.INVOICE_OVERDUE]: { concurrency: 1, attempts: 1, backoffMs: 0 },

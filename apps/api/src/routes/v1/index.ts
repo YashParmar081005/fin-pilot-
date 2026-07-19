@@ -9,6 +9,7 @@ import { paymentRoutes, webhookRoutes } from './payment.routes';
 import { gstRoutes } from './gst.routes';
 import { bankingRoutes } from './banking.routes';
 import { reconciliationRoutes } from './reconciliation.routes';
+import { jobRoutes, reportRoutes } from './report.routes';
 import { companyRoutes, inviteRoutes } from './company.routes';
 
 export const v1Routes = Router();
@@ -28,3 +29,5 @@ v1Routes.use('/webhooks', webhookRoutes);
 v1Routes.use('/gst', gstRoutes);
 v1Routes.use('/bank-accounts', bankingRoutes);
 v1Routes.use('/reconciliation', reconciliationRoutes);
+v1Routes.use('/reports', reportRoutes);
+v1Routes.use('/jobs', jobRoutes);

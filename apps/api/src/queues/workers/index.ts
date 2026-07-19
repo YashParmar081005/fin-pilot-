@@ -7,6 +7,7 @@ import type { Worker } from 'bullmq';
 import { getEnv } from '../../config/env';
 import { logger } from '../../config/logger';
 import { processEInvoice, warnEInvoiceDeadlines } from '../../jobs/einvoice';
+import { processReportExport } from '../../jobs/reportExport';
 import { runLedgerIntegrityJob } from '../../jobs/ledgerIntegrity';
 import {
   flipOverdueInvoices,
@@ -48,6 +49,11 @@ export function registerWorkers(): Worker[] {
       { concurrency: QUEUE_POLICY[QUEUES.EINVOICE].concurrency },
     ),
     createWorker(QUEUES.EINVOICE_DEADLINE, async () => ({ warned: await warnEInvoiceDeadlines() })),
+    createWorker(
+      QUEUES.REPORT_EXPORT,
+      async (job) => processReportExport(JobSchemas[QUEUES.REPORT_EXPORT].parse(job.data)),
+      { concurrency: QUEUE_POLICY[QUEUES.REPORT_EXPORT].concurrency },
+    ),
     createWorker(QUEUES.LEDGER_INTEGRITY, async () => {
       const violations = await runLedgerIntegrityJob();
       return { violations: violations.length };

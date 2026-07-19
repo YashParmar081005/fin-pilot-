@@ -70,4 +70,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 14    | IMS (sync + bill matcher, push-back, pending cap, ITC alarm)      | ✅     |
 | 15    | Banking (CSV import + fingerprint dedupe, AA sandbox flow)        | ✅     |
 | 16    | Reconciliation (scoring engine, human confirm, from-line entry)   | ✅     |
-| 17    | Reports                                                           | next   |
+| 17    | Reports (TB/P&L/BS/cash flow/aged, queued CSV exports)            | ✅     |
+| 18    | Documents and OCR                                                 | next   |
