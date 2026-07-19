@@ -1,29 +1,53 @@
 /**
- * Worker process entrypoint (plan.md §5.1). BullMQ consumers arrive in Phase
- * 11 — Phase 0 establishes the process shape: no inbound port except /healthz,
- * connects to Mongo + Redis, shuts down gracefully.
+ * Worker process entrypoint (plan.md §5.1, §20). BullMQ consumers + repeatable
+ * jobs + the transactional-outbox change-stream publisher. No inbound port
+ * except /healthz. Graceful shutdown per §20.8: finish in-flight jobs, take
+ * no new ones.
  */
 import http from 'node:http';
+import mongoose from 'mongoose';
 import type { HealthResponse } from '@finpilot/shared';
 import { connectMongo, disconnectMongo, mongoStatus } from './config/db';
 import type { Env } from './config/env';
 import { logger } from './config/logger';
 import { closeRedis, getRedis, redisStatus } from './config/redis';
-import { runLedgerIntegrityJob } from './jobs/ledgerIntegrity';
-
-/** ms until the next 02:15 IST (§12.5). */
-function msUntilNextIntegrityRun(now = new Date()): number {
-  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
-  const ist = new Date(now.getTime() + IST_OFFSET_MS);
-  const next = new Date(ist);
-  next.setUTCHours(2, 15, 0, 0);
-  if (next <= ist) next.setUTCDate(next.getUTCDate() + 1);
-  return next.getTime() - ist.getTime();
-}
+import { handleOutboxEvent } from './jobs/maintenance';
+import { OutboxEvent } from './models/OutboxEvent';
+import { closeQueues } from './queues/infra';
+import { registerRepeatables, registerWorkers } from './queues/workers';
 
 export async function startWorker(env: Env): Promise<void> {
   await connectMongo(env);
   getRedis(env, 'cache');
+
+  const workers = registerWorkers();
+  await registerRepeatables();
+
+  // §22.2: change stream for low latency; the every-minute reaper is the
+  // guarantee when the resume token is lost.
+  const changeStream = OutboxEvent.watch([{ $match: { operationType: 'insert' } }]);
+  changeStream.on('change', (change) => {
+    void (async () => {
+      const doc = (change as { fullDocument?: { _id: unknown; type: string; payload: unknown } })
+        .fullDocument;
+      if (!doc) return;
+      try {
+        await handleOutboxEvent(doc.type, doc.payload);
+        await OutboxEvent.updateOne(
+          { _id: doc._id, status: 'pending' },
+          { status: 'published', publishedAt: new Date() },
+        ).setOptions({ skipTenantScope: true });
+      } catch (err) {
+        logger.error(
+          { err, type: doc.type },
+          'outbox change-stream publish failed — reaper will retry',
+        );
+      }
+    })();
+  });
+  changeStream.on('error', (err) =>
+    logger.error({ err: err.message }, 'outbox change stream error — reaper covers the gap'),
+  );
 
   const health = http.createServer((req, res) => {
     if (req.url === '/healthz') {
@@ -40,26 +64,21 @@ export async function startWorker(env: Env): Promise<void> {
     res.writeHead(404).end();
   });
   health.listen(env.WORKER_HEALTH_PORT, () => {
-    logger.info({ port: env.WORKER_HEALTH_PORT }, 'worker up — queue consumers arrive in Phase 11');
+    logger.info(
+      { port: env.WORKER_HEALTH_PORT, workers: workers.length },
+      'worker up — consumers + repeatables + outbox publisher',
+    );
   });
 
-  const heartbeat = setInterval(() => logger.debug('worker heartbeat'), 60_000);
-
-  // Nightly ledger integrity (§12.5) — BullMQ repeatable jobs take over in
-  // the queues phase; until then a plain timer keeps the guarantee alive.
-  let integrityTimer: NodeJS.Timeout = setTimeout(function run() {
-    runLedgerIntegrityJob()
-      .catch((err) => logger.error({ err }, 'ledger integrity job failed'))
-      .finally(() => {
-        integrityTimer = setTimeout(run, 24 * 60 * 60 * 1000);
-      });
-  }, msUntilNextIntegrityRun());
-
+  // §20.8 — a worker killed mid-transaction is fine (Mongo aborts it); the
+  // idempotency guards make a mid-call kill a no-op on replay.
   const shutdown = async (signal: string) => {
-    logger.info({ signal }, 'worker shutting down');
-    clearInterval(heartbeat);
-    clearTimeout(integrityTimer);
+    logger.info({ signal }, 'worker shutting down — draining in-flight jobs');
     health.close();
+    await changeStream.close().catch(() => undefined);
+    await Promise.all(workers.map((w) => w.close())); // finish in-flight, take no new
+    await closeQueues();
+    await mongoose.connection.close(false);
     await closeRedis();
     await disconnectMongo();
     process.exit(0);
