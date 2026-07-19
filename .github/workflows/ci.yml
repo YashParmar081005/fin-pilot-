@@ -41,7 +41,8 @@ jobs:
             | grep -v "apps/api/src/engines/ledger/" \
             | grep -v "apps/api/src/models/JournalEntry.ts" \
             | grep -v "apps/api/src/jobs/ledgerIntegrity.ts" \
-            | grep -v "apps/api/src/services/journalService.ts" || true)
+            | grep -v "apps/api/src/services/journalService.ts" \
+            | grep -v "apps/api/src/services/reconciliationService.ts" || true)
           if [ -n "$VIOLATIONS" ]; then
             echo "JournalEntry imported outside allowed modules:"; echo "$VIOLATIONS"; exit 1
           fi

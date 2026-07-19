@@ -23,8 +23,16 @@ async function tryConnect(uri: string, dbName: string): Promise<boolean> {
       // bounds this the same way (MONGO_MAX_POOL + rate limiting, §19).
       maxPoolSize: 10,
     });
+    // a STANDALONE mongod on 27017 (e.g. a Windows service shadowing the
+    // docker RS) cannot run transactions — verify before accepting it
+    const hello = await mongoose.connection.db!.admin().command({ hello: 1 });
+    if (!hello.setName) {
+      await mongoose.disconnect();
+      return false;
+    }
     return true;
   } catch {
+    await mongoose.disconnect().catch(() => undefined);
     return false;
   }
 }
