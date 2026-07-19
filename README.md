@@ -62,4 +62,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 6     | Parties and items (GSTIN checksum, GST 2.0 rate history, imports) | ✅     |
 | 7     | Invoicing (I5 totals, §12.2 GL posting, idempotency I7)           | ✅     |
 | 8     | Bills, expenses, approvals (ITC posting, no self-approval)        | ✅     |
-| 9     | Payments and allocation                                           | next   |
+| 9     | Payments and allocation (advances + GST, Razorpay webhook)        | ✅     |
+| 10    | Rate limiting                                                     | next   |

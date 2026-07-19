@@ -34,7 +34,15 @@ export function buildApp(service: HealthResponse['service'] = 'api'): Express {
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Company-Id', 'Idempotency-Key'],
     }),
   );
-  app.use(express.json({ limit: '256kb' }));
+  app.use(
+    express.json({
+      limit: '256kb',
+      // webhook signatures (Razorpay) are HMACs over the RAW body
+      verify: (req, _res, buf) => {
+        (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+      },
+    }),
+  );
   app.use(cookieParser());
 
   app.get('/healthz', (_req, res) => {
