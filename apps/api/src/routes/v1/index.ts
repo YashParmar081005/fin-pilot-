@@ -10,6 +10,7 @@ import { gstRoutes } from './gst.routes';
 import { bankingRoutes } from './banking.routes';
 import { reconciliationRoutes } from './reconciliation.routes';
 import { jobRoutes, reportRoutes } from './report.routes';
+import { billFromDocumentRoutes, documentRoutes } from './document.routes';
 import { companyRoutes, inviteRoutes } from './company.routes';
 
 export const v1Routes = Router();
@@ -31,3 +32,5 @@ v1Routes.use('/bank-accounts', bankingRoutes);
 v1Routes.use('/reconciliation', reconciliationRoutes);
 v1Routes.use('/reports', reportRoutes);
 v1Routes.use('/jobs', jobRoutes);
+v1Routes.use('/documents', documentRoutes);
+v1Routes.use('/bills', billFromDocumentRoutes);
