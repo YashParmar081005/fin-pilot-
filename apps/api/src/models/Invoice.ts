@@ -58,6 +58,16 @@ export interface InvoiceDoc {
   amountDuePaise: number;
   status: 'draft' | 'issued' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled';
   journalEntryId: Types.ObjectId | null;
+  eInvoice: {
+    required: boolean;
+    irn?: string | null;
+    ackNo?: string | null;
+    ackDate?: Date | null;
+    signedQrCode?: string | null;
+    status: 'not_applicable' | 'pending' | 'generated' | 'failed' | 'cancelled';
+    lastError?: string | null;
+    attemptCount: number;
+  };
   notes?: string;
   termsAndConditions?: string;
   createdAt: Date;
@@ -119,6 +129,21 @@ const InvoiceSchema = new Schema<InvoiceDoc>(
       default: 'draft',
     },
     journalEntryId: { type: Schema.Types.ObjectId, ref: 'JournalEntry', default: null },
+    // §14.4 — per-company applicability flag, never a code branch
+    eInvoice: {
+      required: { type: Boolean, default: false },
+      irn: { type: String, default: null },
+      ackNo: { type: String, default: null },
+      ackDate: { type: Date, default: null },
+      signedQrCode: { type: String, default: null },
+      status: {
+        type: String,
+        enum: ['not_applicable', 'pending', 'generated', 'failed', 'cancelled'],
+        default: 'not_applicable',
+      },
+      lastError: { type: String, default: null },
+      attemptCount: { type: Number, default: 0 },
+    },
     notes: String,
     termsAndConditions: String,
   },

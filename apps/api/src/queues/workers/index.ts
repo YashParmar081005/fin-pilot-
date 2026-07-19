@@ -6,6 +6,7 @@ import nodemailer from 'nodemailer';
 import type { Worker } from 'bullmq';
 import { getEnv } from '../../config/env';
 import { logger } from '../../config/logger';
+import { processEInvoice, warnEInvoiceDeadlines } from '../../jobs/einvoice';
 import { runLedgerIntegrityJob } from '../../jobs/ledgerIntegrity';
 import {
   flipOverdueInvoices,
@@ -41,6 +42,12 @@ export function registerWorkers(): Worker[] {
       },
       { concurrency: QUEUE_POLICY[QUEUES.EMAIL].concurrency },
     ),
+    createWorker(
+      QUEUES.EINVOICE,
+      async (job) => processEInvoice(JobSchemas[QUEUES.EINVOICE].parse(job.data)),
+      { concurrency: QUEUE_POLICY[QUEUES.EINVOICE].concurrency },
+    ),
+    createWorker(QUEUES.EINVOICE_DEADLINE, async () => ({ warned: await warnEInvoiceDeadlines() })),
     createWorker(QUEUES.LEDGER_INTEGRITY, async () => {
       const violations = await runLedgerIntegrityJob();
       return { violations: violations.length };

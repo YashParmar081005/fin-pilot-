@@ -14,7 +14,9 @@ import {
   type UpdateInvoiceInput,
 } from '@finpilot/shared';
 import { GeneralLedger, type JournalLineDraft } from '../engines/ledger/GeneralLedger';
+import { getIrpClient } from '../integrations/irp/client';
 import { Invoice, type InvoiceDoc, type InvoiceLine } from '../models/Invoice';
+import { OutboxEvent } from '../models/OutboxEvent';
 import { partySnapshot } from '../models/Party';
 import { nextNumber } from '../models/Counter';
 import { accountRepo } from '../repositories/accountRepo';
@@ -272,6 +274,23 @@ export const invoiceService = {
 
       invoice.status = 'issued';
       invoice.journalEntryId = entry._id;
+
+      // §14.4: async IRN — 201 returns immediately, the worker does the IRP
+      const company = await companyRepo.findById(ctx.companyId);
+      if (company?.eInvoiceEnabled && invoice.partySnapshot?.gstin) {
+        invoice.eInvoice.required = true;
+        invoice.eInvoice.status = 'pending';
+        await OutboxEvent.create(
+          [
+            {
+              companyId: ctx.companyId,
+              type: 'invoice.issued.einvoice',
+              payload: { invoiceId: String(invoice._id), companyId: String(ctx.companyId) },
+            },
+          ],
+          { session },
+        );
+      }
       await invoice.save({ session });
       return invoice.toObject();
     });
@@ -296,6 +315,13 @@ export const invoiceService = {
         ctx.userId!,
         session,
       );
+      // §14.4: IRN cancellation only within 24 h of generation
+      if (invoice.eInvoice.status === 'generated') {
+        const age = Date.now() - (invoice.eInvoice.ackDate?.getTime() ?? 0);
+        if (age > 24 * 3_600_000) throw new AppError('IRP_WINDOW_EXPIRED', 409);
+        await getIrpClient().cancelIrn(invoice.eInvoice.irn!, reason);
+        invoice.eInvoice.status = 'cancelled';
+      }
       invoice.status = 'cancelled';
       invoice.amountDuePaise = 0;
       await invoice.save({ session });

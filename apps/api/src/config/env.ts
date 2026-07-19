@@ -56,6 +56,9 @@ const envSchema = z.object({
   RL_L1_LIMIT: z.coerce.number().int().positive().default(300), // per IP per minute
   RL_AUTH_LIMIT: z.coerce.number().int().positive().default(10), // credential attempts per IP per minute
 
+  // IRP / GSP (§14.4)
+  IRP_SCHEMA_VERSION: z.string().default('1.1'),
+
   // Razorpay (§4.2 — the only payment provider in v1)
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),

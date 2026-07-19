@@ -52,10 +52,16 @@ export async function reapOutbox(
  * events have no downstream consumer — the routing point exists so later
  * phases (notifications, e-invoice, denormalise rebuilds) plug in here.
  */
-export async function handleOutboxEvent(type: string, _payload: unknown): Promise<void> {
+export async function handleOutboxEvent(type: string, payload: unknown): Promise<void> {
   switch (type) {
     case 'journal.posted':
       return; // consumed by notification fanout / periodbalances in later phases
+    case 'invoice.issued.einvoice': {
+      const { enqueueEInvoice } = await import('../queues/producers');
+      const p = payload as { invoiceId: string; companyId: string };
+      await enqueueEInvoice({ invoiceId: p.invoiceId, companyId: p.companyId });
+      return;
+    }
     default:
       logger.warn({ type }, 'outbox event with no handler — marking published');
   }
