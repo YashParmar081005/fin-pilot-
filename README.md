@@ -65,4 +65,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 9     | Payments and allocation (advances + GST, Razorpay webhook)        | ✅     |
 | 10    | Rate limiting (§19 layers, Lua, fail-open/closed, breakers)       | ✅     |
 | 11    | Queues (BullMQ, outbox publisher, DLQ + replay, cron)             | ✅     |
-| 12    | GST computation and returns                                       | next   |
+| 12    | GST returns (GSTR-1/3B, journal-entry trace, TB reconciliation)   | ✅     |
+| 13    | E-invoicing                                                       | next   |
