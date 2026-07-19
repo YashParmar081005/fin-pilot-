@@ -3,6 +3,7 @@ import { accountRoutes } from './account.routes';
 import { authRoutes } from './auth.routes';
 import { journalRoutes } from './journal.routes';
 import { itemRoutes, partyRoutes } from './party.routes';
+import { invoiceRoutes } from './invoice.routes';
 import { companyRoutes, inviteRoutes } from './company.routes';
 
 export const v1Routes = Router();
@@ -14,3 +15,4 @@ v1Routes.use('/accounts', accountRoutes);
 v1Routes.use('/journal-entries', journalRoutes);
 v1Routes.use('/parties', partyRoutes);
 v1Routes.use('/items', itemRoutes);
+v1Routes.use('/invoices', invoiceRoutes);

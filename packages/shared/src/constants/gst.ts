@@ -37,6 +37,22 @@ export function rateIsValidOn(rate: number, date: Date | string): boolean {
   return isValidGstRateOn(rate, date);
 }
 
+export type SupplyType = 'intra' | 'inter' | 'export' | 'sez';
+
+/**
+ * Place of supply → IGST vs CGST+SGST (§14.2) — the single most common bug
+ * in Indian accounting software. SEZ is ALWAYS IGST, even intra-state.
+ */
+export function supplyTypeFor(
+  companyStateCode: string,
+  partyRegistrationType: string,
+  placeOfSupplyStateCode: string,
+): SupplyType {
+  if (partyRegistrationType === 'overseas') return 'export';
+  if (partyRegistrationType === 'sez') return 'sez';
+  return companyStateCode === placeOfSupplyStateCode ? 'intra' : 'inter';
+}
+
 /**
  * GST state codes — the first two digits of a GSTIN. '24' = Gujarat.
  * Drives IGST vs CGST+SGST (place-of-supply, §14).
