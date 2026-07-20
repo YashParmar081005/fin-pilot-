@@ -51,29 +51,30 @@ apps/web           React 19 + Vite 6 SPA
 
 Development follows the 24-phase plan in plan.md §32.
 
-| Phase | Scope                                                             | Status |
-| ----- | ----------------------------------------------------------------- | ------ |
-| 0     | Repo and rails (monorepo, docker infra, env validation)           | ✅     |
-| 1     | Error, response, request rails (envelope, AppError, requestId)    | ✅     |
-| 2     | Auth (argon2id, refresh rotation + reuse detection, 2FA, lockout) | ✅     |
-| 3     | Tenancy and RBAC (tenant plugin, roles, invites, perm cache)      | ✅     |
-| 4     | Chart of accounts (60-account Indian SME COA, tree UI)            | ✅     |
-| 5     | General Ledger engine (post/reverse/TB, gapless numbers, I2–I4)   | ✅     |
-| 6     | Parties and items (GSTIN checksum, GST 2.0 rate history, imports) | ✅     |
-| 7     | Invoicing (I5 totals, §12.2 GL posting, idempotency I7)           | ✅     |
-| 8     | Bills, expenses, approvals (ITC posting, no self-approval)        | ✅     |
-| 9     | Payments and allocation (advances + GST, Razorpay webhook)        | ✅     |
-| 10    | Rate limiting (§19 layers, Lua, fail-open/closed, breakers)       | ✅     |
-| 11    | Queues (BullMQ, outbox publisher, DLQ + replay, cron)             | ✅     |
-| 12    | GST returns (GSTR-1/3B, journal-entry trace, TB reconciliation)   | ✅     |
-| 13    | E-invoicing (async IRN, INV-01, 4xx/5xx semantics, 24h cancel)    | ✅     |
-| 14    | IMS (sync + bill matcher, push-back, pending cap, ITC alarm)      | ✅     |
-| 15    | Banking (CSV import + fingerprint dedupe, AA sandbox flow)        | ✅     |
-| 16    | Reconciliation (scoring engine, human confirm, from-line entry)   | ✅     |
-| 17    | Reports (TB/P&L/BS/cash flow/aged, queued CSV exports)            | ✅     |
-| 18    | Documents/OCR (₹0 text layer, confidence contract, bill-from-doc) | ✅     |
-| 19    | AI Copilot (read tools, grounding I9, fail-closed budget, SSE)    | ✅     |
-| 20    | Write tools + proposals (I10 confirm, TTL, preview ignored)       | ✅     |
-| 21    | Forecast/health/anomalies (deterministic P10/50/90, drivers)      | ✅     |
-| 22    | Notifications (idempotent, preferences, overdue + GST reminders)  | ✅     |
-| 23    | Subscriptions and admin                                           | next   |
+| Phase | Scope                                                               | Status |
+| ----- | ------------------------------------------------------------------- | ------ |
+| 0     | Repo and rails (monorepo, docker infra, env validation)             | ✅     |
+| 1     | Error, response, request rails (envelope, AppError, requestId)      | ✅     |
+| 2     | Auth (argon2id, refresh rotation + reuse detection, 2FA, lockout)   | ✅     |
+| 3     | Tenancy and RBAC (tenant plugin, roles, invites, perm cache)        | ✅     |
+| 4     | Chart of accounts (60-account Indian SME COA, tree UI)              | ✅     |
+| 5     | General Ledger engine (post/reverse/TB, gapless numbers, I2–I4)     | ✅     |
+| 6     | Parties and items (GSTIN checksum, GST 2.0 rate history, imports)   | ✅     |
+| 7     | Invoicing (I5 totals, §12.2 GL posting, idempotency I7)             | ✅     |
+| 8     | Bills, expenses, approvals (ITC posting, no self-approval)          | ✅     |
+| 9     | Payments and allocation (advances + GST, Razorpay webhook)          | ✅     |
+| 10    | Rate limiting (§19 layers, Lua, fail-open/closed, breakers)         | ✅     |
+| 11    | Queues (BullMQ, outbox publisher, DLQ + replay, cron)               | ✅     |
+| 12    | GST returns (GSTR-1/3B, journal-entry trace, TB reconciliation)     | ✅     |
+| 13    | E-invoicing (async IRN, INV-01, 4xx/5xx semantics, 24h cancel)      | ✅     |
+| 14    | IMS (sync + bill matcher, push-back, pending cap, ITC alarm)        | ✅     |
+| 15    | Banking (CSV import + fingerprint dedupe, AA sandbox flow)          | ✅     |
+| 16    | Reconciliation (scoring engine, human confirm, from-line entry)     | ✅     |
+| 17    | Reports (TB/P&L/BS/cash flow/aged, queued CSV exports)              | ✅     |
+| 18    | Documents/OCR (₹0 text layer, confidence contract, bill-from-doc)   | ✅     |
+| 19    | AI Copilot (read tools, grounding I9, fail-closed budget, SSE)      | ✅     |
+| 20    | Write tools + proposals (I10 confirm, TTL, preview ignored)         | ✅     |
+| 21    | Forecast/health/anomalies (deterministic P10/50/90, drivers)        | ✅     |
+| 22    | Notifications (idempotent, preferences, overdue + GST reminders)    | ✅     |
+| 23    | Subscriptions and admin (402 + upgrade path, audited impersonation) | ✅     |
+| 24    | Observability, security, launch                                     | next   |

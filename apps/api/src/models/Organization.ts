@@ -16,6 +16,7 @@ export interface OrganizationDoc {
     maxUsers: number;
     maxInvoicesMonth: number;
     aiTokensMonth: number;
+    ocrPagesMonth: number;
   };
   branding?: {
     logoUrl?: string;
@@ -42,6 +43,7 @@ const OrganizationSchema = new Schema<OrganizationDoc>(
       maxUsers: { type: Number, default: 3 },
       maxInvoicesMonth: { type: Number, default: 50 },
       aiTokensMonth: { type: Number, default: 200_000 },
+      ocrPagesMonth: { type: Number, default: 25 },
     },
     branding: {
       logoUrl: String,

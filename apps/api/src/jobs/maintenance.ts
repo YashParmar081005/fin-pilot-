@@ -21,6 +21,14 @@ export async function flipOverdueInvoices(now = new Date()): Promise<number> {
  * outbox.reaper — publish pending rows the change stream missed (§22.2).
  * At-least-once: marking published is idempotent, handlers dedupe by jobId.
  */
+/** Marks one outbox event published — the change-stream publisher's ack. */
+export async function markOutboxPublished(id: unknown): Promise<void> {
+  await OutboxEvent.updateOne(
+    { _id: id, status: 'pending' },
+    { status: 'published', publishedAt: new Date() },
+  ).setOptions({ skipTenantScope: true });
+}
+
 export async function reapOutbox(
   handle: (type: string, payload: unknown) => Promise<void>,
 ): Promise<number> {

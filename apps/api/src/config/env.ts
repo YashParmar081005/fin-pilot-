@@ -63,6 +63,9 @@ const envSchema = z.object({
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+  RAZORPAY_PLAN_ID_STARTER: z.string().optional(),
+  RAZORPAY_PLAN_ID_PROFESSIONAL: z.string().optional(),
+  RAZORPAY_PLAN_ID_ENTERPRISE: z.string().optional(),
 
   // Mail — Mailhog in dev; Resend/SES in production
   SMTP_HOST: z.string().default('localhost'),

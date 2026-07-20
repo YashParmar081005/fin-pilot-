@@ -16,6 +16,8 @@ export interface RequestContext {
   userId?: Types.ObjectId;
   companyId?: Types.ObjectId;
   roleId?: Types.ObjectId;
+  /** Set when the request runs under impersonation (§32 Phase 23) — audit rows tag it. */
+  impersonatedBy?: Types.ObjectId;
 }
 
 export const requestContext = new AsyncLocalStorage<RequestContext>();

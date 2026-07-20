@@ -17,6 +17,8 @@ export interface AccessClaims {
   jti: string;
   iat: number;
   exp: number;
+  /** Present ONLY on impersonation tokens (§32 Phase 23). */
+  imp?: { by: string; sid: string };
 }
 
 export function signAccessToken(userId: string, familyId: string): string {
@@ -24,6 +26,28 @@ export function signAccessToken(userId: string, familyId: string): string {
   return jwt.sign({ sub: userId, fam: familyId, jti: uuidv7() }, env.JWT_ACCESS_SECRET, {
     expiresIn: Math.floor(parseDuration(env.JWT_ACCESS_TTL) / 1000),
   });
+}
+
+/**
+ * Impersonation token (§32 Phase 23): 15 min, tied to an ImpersonationSession.
+ * The `imp` claim makes every request during it identifiable — authenticate
+ * validates the session is still open and tags each action onto it.
+ */
+export function signImpersonationToken(
+  targetUserId: string,
+  adminUserId: string,
+  sessionId: string,
+): string {
+  return jwt.sign(
+    {
+      sub: targetUserId,
+      fam: `imp:${sessionId}`,
+      jti: uuidv7(),
+      imp: { by: adminUserId, sid: sessionId },
+    },
+    getEnv().JWT_ACCESS_SECRET,
+    { expiresIn: 900 },
+  );
 }
 
 export function verifyAccessToken(token: string): AccessClaims {

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import type { CreateJournalEntryInput, ReverseJournalEntryInput } from '@finpilot/shared';
-import type { JournalEntryDoc } from '../models/JournalEntry';
+import type { JournalEntryDoc } from '../services/journalService';
 import { journalService } from '../services/journalService';
 import { ok } from '../utils/respond';
 

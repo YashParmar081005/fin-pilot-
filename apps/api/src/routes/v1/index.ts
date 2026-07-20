@@ -14,6 +14,8 @@ import { billFromDocumentRoutes, documentRoutes } from './document.routes';
 import { aiRoutes } from './ai.routes';
 import { forecastRoutes } from './forecast.routes';
 import { notificationRoutes } from './notification.routes';
+import { adminRoutes } from './admin.routes';
+import { billingRoutes } from './billing.routes';
 import { companyRoutes, inviteRoutes } from './company.routes';
 
 export const v1Routes = Router();
@@ -40,3 +42,5 @@ v1Routes.use('/bills', billFromDocumentRoutes);
 v1Routes.use('/ai', aiRoutes);
 v1Routes.use('/forecast', forecastRoutes);
 v1Routes.use('/notifications', notificationRoutes);
+v1Routes.use('/billing', billingRoutes);
+v1Routes.use('/admin', adminRoutes);

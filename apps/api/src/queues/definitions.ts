@@ -14,6 +14,7 @@ export const QUEUES = {
   INVOICE_OVERDUE: 'cron.invoice.overdue',
   OUTBOX_REAPER: 'cron.outbox.reaper',
   IDEMPOTENCY_SWEEP: 'cron.idempotency.sweep',
+  SUBSCRIPTION_ROLLUP: 'cron.subscription.rollup',
 } as const;
 
 export type QueueName = (typeof QUEUES)[keyof typeof QUEUES];
@@ -35,6 +36,7 @@ export const JobSchemas = {
   [QUEUES.INVOICE_OVERDUE]: z.object({}).default({}),
   [QUEUES.OUTBOX_REAPER]: z.object({}).default({}),
   [QUEUES.IDEMPOTENCY_SWEEP]: z.object({}).default({}),
+  [QUEUES.SUBSCRIPTION_ROLLUP]: z.object({}).default({}),
 } as const;
 
 /** §20.2 per-queue policy: concurrency, attempts, backoff. */
@@ -50,6 +52,7 @@ export const QUEUE_POLICY: Record<
   [QUEUES.INVOICE_OVERDUE]: { concurrency: 1, attempts: 1, backoffMs: 0 },
   [QUEUES.OUTBOX_REAPER]: { concurrency: 1, attempts: 1, backoffMs: 0 },
   [QUEUES.IDEMPOTENCY_SWEEP]: { concurrency: 1, attempts: 1, backoffMs: 0 },
+  [QUEUES.SUBSCRIPTION_ROLLUP]: { concurrency: 1, attempts: 1, backoffMs: 0 },
 };
 
 /** §20.7 repeatable schedules — stable keys or BullMQ accumulates duplicates. */
@@ -59,4 +62,5 @@ export const REPEATABLES: Array<{ queue: QueueName; pattern: string }> = [
   { queue: QUEUES.INVOICE_OVERDUE, pattern: '0 6 * * *' },
   { queue: QUEUES.OUTBOX_REAPER, pattern: '*/1 * * * *' },
   { queue: QUEUES.IDEMPOTENCY_SWEEP, pattern: '0 4 * * *' },
+  { queue: QUEUES.SUBSCRIPTION_ROLLUP, pattern: '0 1 * * *' }, // §20.7 usage_rollup
 ];

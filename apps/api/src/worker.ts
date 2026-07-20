@@ -11,7 +11,7 @@ import { connectMongo, disconnectMongo, mongoStatus } from './config/db';
 import type { Env } from './config/env';
 import { logger } from './config/logger';
 import { closeRedis, getRedis, redisStatus } from './config/redis';
-import { handleOutboxEvent } from './jobs/maintenance';
+import { handleOutboxEvent, markOutboxPublished } from './jobs/maintenance';
 import { OutboxEvent } from './models/OutboxEvent';
 import { closeQueues } from './queues/infra';
 import { registerRepeatables, registerWorkers } from './queues/workers';
@@ -33,10 +33,7 @@ export async function startWorker(env: Env): Promise<void> {
       if (!doc) return;
       try {
         await handleOutboxEvent(doc.type, doc.payload);
-        await OutboxEvent.updateOne(
-          { _id: doc._id, status: 'pending' },
-          { status: 'published', publishedAt: new Date() },
-        ).setOptions({ skipTenantScope: true });
+        await markOutboxPublished(doc._id);
       } catch (err) {
         logger.error(
           { err, type: doc.type },

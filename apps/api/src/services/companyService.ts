@@ -6,7 +6,7 @@
  */
 import { randomBytes } from 'node:crypto';
 import { Types } from 'mongoose';
-import type { CreateCompanyInput, UpdateCompanyInput } from '@finpilot/shared';
+import { upgradePathFor, type CreateCompanyInput, type UpdateCompanyInput } from '@finpilot/shared';
 import type { CompanyDoc } from '../models/Company';
 import { companyRepo } from '../repositories/companyRepo';
 import { membershipRepo } from '../repositories/membershipRepo';
@@ -48,8 +48,10 @@ export const companyService = {
     if (count >= org.limits.maxCompanies) {
       throw new AppError('SYS_PLAN_LIMIT_EXCEEDED', 402, {
         limit: 'maxCompanies',
+        used: count,
         max: org.limits.maxCompanies,
         plan: org.plan,
+        upgrade: upgradePathFor(org.plan), // §32 Phase 23: 402 WITH an upgrade path
       });
     }
 

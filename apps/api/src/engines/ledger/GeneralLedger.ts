@@ -18,6 +18,7 @@ import {
   type JournalSourceType,
 } from '../../models/JournalEntry';
 import { OutboxEvent } from '../../models/OutboxEvent';
+import { requestContext } from '../../plugins/tenantScope';
 import { AppError } from '../../utils/AppError';
 import { financialYear } from '../../utils/financialYear';
 
@@ -217,7 +218,15 @@ export const GeneralLedger = {
           entityType: 'JournalEntry',
           entityId: entry!._id,
           actorId: actor,
-          meta: { entryNumber, totalDebitPaise: totalDebit, source: draft.source.type },
+          meta: {
+            entryNumber,
+            totalDebitPaise: totalDebit,
+            source: draft.source.type,
+            // §32 Phase 23: actions during impersonation are tagged
+            ...(requestContext.getStore()?.impersonatedBy
+              ? { impersonatedBy: requestContext.getStore()!.impersonatedBy }
+              : {}),
+          },
         },
       ],
       { session },

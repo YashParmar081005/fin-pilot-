@@ -3,6 +3,7 @@
  * truth; Redis is only ever a cache. assertBudget runs BEFORE the first LLM
  * call — over-quota costs ZERO tokens.
  */
+import { upgradePathFor } from '@finpilot/shared';
 import { AiUsage } from '../models/AiConversation';
 import { Company } from '../models/Company';
 import { Organization } from '../models/Organization';
@@ -21,7 +22,7 @@ export async function assertBudget(): Promise<void> {
     throw new AppError('AI_QUOTA_EXCEEDED', 402, {
       limit,
       used: usage?.tokensUsed ?? 0,
-      upgrade: 'raise Organization.limits.aiTokensMonth',
+      upgrade: upgradePathFor(org?.plan ?? 'free'), // §32 Phase 23 contract
     });
   }
 }

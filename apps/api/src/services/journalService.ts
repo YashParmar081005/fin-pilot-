@@ -6,6 +6,10 @@ import { Types } from 'mongoose';
 import type { CreateJournalEntryInput } from '@finpilot/shared';
 import { GeneralLedger, type LedgerPage } from '../engines/ledger/GeneralLedger';
 import { JournalEntry, type JournalEntryDoc } from '../models/JournalEntry';
+
+// the sole type gateway for callers — importing models/JournalEntry outside
+// the engine/read-service trips the I3 sole-writer CI gate, types included
+export type { JournalEntryDoc };
 import { requireCompanyContext } from '../plugins/tenantScope';
 import { AppError } from '../utils/AppError';
 import { withTransaction } from '../utils/withTransaction';

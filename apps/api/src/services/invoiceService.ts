@@ -24,6 +24,7 @@ import { companyRepo } from '../repositories/companyRepo';
 import { itemRepo } from '../repositories/itemRepo';
 import { partyRepo } from '../repositories/partyRepo';
 import { requireCompanyContext } from '../plugins/tenantScope';
+import { subscriptionService } from './admin/subscriptionService';
 import { AppError } from '../utils/AppError';
 import { financialYear } from '../utils/financialYear';
 import { withTransaction } from '../utils/withTransaction';
@@ -186,6 +187,7 @@ async function glLinesFor(invoice: InvoiceDoc): Promise<JournalLineDraft[]> {
 
 export const invoiceService = {
   async createDraft(input: CreateInvoiceInput): Promise<InvoiceDoc> {
+    await subscriptionService.assertInvoiceQuota(); // §32 Phase 23: 402 + upgrade path
     const totals = await computeTotals(input);
     const party = await partyRepo.findById(input.partyId);
     const created = await Invoice.create({

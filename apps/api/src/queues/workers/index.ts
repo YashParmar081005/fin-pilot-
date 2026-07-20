@@ -16,6 +16,7 @@ import {
   sweepIdempotencyKeys,
 } from '../../jobs/maintenance';
 import { guardOutbound, mailLimiter } from '../../integrations/limiters';
+import { subscriptionService } from '../../services/admin/subscriptionService';
 import { JobSchemas, QUEUES, QUEUE_POLICY, REPEATABLES } from '../definitions';
 import { createWorker, getQueue } from '../infra';
 
@@ -64,6 +65,9 @@ export function registerWorkers(): Worker[] {
     })),
     createWorker(QUEUES.IDEMPOTENCY_SWEEP, async () => ({
       swept: await sweepIdempotencyKeys(),
+    })),
+    createWorker(QUEUES.SUBSCRIPTION_ROLLUP, async () => ({
+      organizations: await subscriptionService.rollupUsage(),
     })),
   ];
 }

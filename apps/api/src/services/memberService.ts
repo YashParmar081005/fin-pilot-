@@ -13,6 +13,7 @@ import { membershipRepo } from '../repositories/membershipRepo';
 import { roleRepo } from '../repositories/roleRepo';
 import { userRepo } from '../repositories/userRepo';
 import { AppError } from '../utils/AppError';
+import { subscriptionService } from './admin/subscriptionService';
 import { sendMail } from './mailService';
 import { permissionCache } from './permissionCache';
 
@@ -33,6 +34,9 @@ export const memberService = {
   ): Promise<{ invitedEmail: string; roleKey: string; userExists: boolean }> {
     const company = await companyRepo.findById(inviter.companyId);
     if (!company) throw new AppError('SYS_NOT_FOUND', 404);
+
+    // §32 Phase 23: seats are an org-level plan limit — 402 + upgrade path
+    await subscriptionService.assertSeatQuota(company.organizationId);
 
     // 'owner' is org-level and never invitable — enforced by the Zod enum
     // too, but the service is the authority.

@@ -19,6 +19,8 @@ export interface UserDoc {
   lockedUntil?: Date | null;
   lastLoginAt?: Date | null;
   locale: 'en-IN' | 'hi-IN' | 'gu-IN';
+  /** Platform operator (§2.1 role matrix). No API grants this — seed/ops only. */
+  superAdmin?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +41,7 @@ const UserSchema = new Schema<UserDoc>(
     lockedUntil: { type: Date, default: null },
     lastLoginAt: { type: Date, default: null },
     locale: { type: String, enum: ['en-IN', 'hi-IN', 'gu-IN'], default: 'en-IN' },
+    superAdmin: { type: Boolean, default: false, select: false },
   },
   { timestamps: true },
 );

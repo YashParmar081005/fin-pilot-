@@ -15,6 +15,7 @@ import { Payment } from '../models/Payment';
 import { accountRepo } from '../repositories/accountRepo';
 import { requestContext } from '../plugins/tenantScope';
 import { AppError } from '../utils/AppError';
+import { subscriptionService } from './admin/subscriptionService';
 import { paymentService } from './paymentService';
 
 export function verifyRazorpaySignature(rawBody: Buffer, signature: string): boolean {
@@ -36,6 +37,12 @@ interface RazorpayCapturedEvent {
         notes?: { companyId?: string; invoiceId?: string };
       };
     };
+    subscription?: {
+      entity?: {
+        id?: string;
+        current_end?: number; // unix seconds
+      };
+    };
   };
 }
 
@@ -45,6 +52,15 @@ const RAZORPAY_ACTOR = new Types.ObjectId('bbbbbbbbbbbbbbbbbbbbbbbb');
 export async function handleRazorpayEvent(
   event: RazorpayCapturedEvent,
 ): Promise<{ handled: boolean; replayed?: boolean }> {
+  // §32 Phase 23 — subscription lifecycle. Activation is idempotent (it sets
+  // the same plan/limits again), so a Razorpay retry is harmless.
+  if (event.event === 'subscription.activated' || event.event === 'subscription.charged') {
+    const sub = event.payload?.subscription?.entity;
+    if (!sub?.id) throw new AppError('SYS_VALIDATION_FAILED', 400, { webhook: 'missing sub id' });
+    await subscriptionService.activateFromWebhook(sub.id, sub.current_end);
+    return { handled: true };
+  }
+
   if (event.event !== 'payment.captured') return { handled: false };
 
   const entity = event.payload?.payment?.entity;

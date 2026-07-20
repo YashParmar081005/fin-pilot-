@@ -29,7 +29,12 @@ export function tenantResolve(source: 'header' | 'param' = 'header') {
         if (!membership) return next(new AppError('TENANT_NOT_A_MEMBER', 403));
         // Everything downstream — authorize, controllers, repositories,
         // the tenantScope plugin — sees this context via AsyncLocalStorage.
-        requestContext.run({ userId, companyId, roleId: membership.roleId }, () => next());
+        const impersonatedBy = req.user!.impersonation
+          ? new Types.ObjectId(req.user!.impersonation.by)
+          : undefined;
+        requestContext.run({ userId, companyId, roleId: membership.roleId, impersonatedBy }, () =>
+          next(),
+        );
       })
       .catch(next);
   };
