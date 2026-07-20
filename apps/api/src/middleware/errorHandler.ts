@@ -1,11 +1,14 @@
 /**
  * One place, one shape (plan.md §18.4). Everything the app can throw lands
  * here and leaves as the error envelope. Full stacks go to the log only —
- * never to the client. Sentry wiring arrives in Phase 24.
+ * never to the client. Unhandled errors go to Sentry tagged with the
+ * requestId (§25 — a no-op unless SENTRY_DSN initialised it at boot).
  */
+import * as Sentry from '@sentry/node';
 import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 import { logger } from '../config/logger';
+import { httpErrorsTotal, rateLimitRejections, routeLabel } from '../observability/metrics';
 import { AppError } from '../utils/AppError';
 import { errorBody } from '../utils/respond';
 
@@ -38,6 +41,11 @@ export function errorHandler(
       .json(errorBody('SYS_VALIDATION_FAILED', { body: 'malformed JSON' }, requestId));
   }
   if (err instanceof AppError) {
+    httpErrorsTotal.inc({ route: routeLabel(req), code: err.code });
+    if (err.code === 'SYS_RATE_LIMIT_EXCEEDED') {
+      const scope = (err.details as { scope?: string } | undefined)?.scope ?? 'unknown';
+      rateLimitRejections.inc({ scope });
+    }
     return res.status(err.status).json(errorBody(err.code, err.details, requestId));
   }
 
@@ -55,6 +63,8 @@ export function errorHandler(
   }
 
   // Unhandled: full stack server-side only, opaque envelope to the client.
+  httpErrorsTotal.inc({ route: routeLabel(req), code: 'SYS_INTERNAL_ERROR' });
+  Sentry.captureException(err, { tags: { requestId } });
   logger.error({ err, requestId }, 'unhandled error');
   return res.status(500).json(errorBody('SYS_INTERNAL_ERROR', undefined, requestId));
 }

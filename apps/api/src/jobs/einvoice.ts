@@ -9,6 +9,7 @@ import { UnrecoverableError } from '../queues/infra';
 import { irpLimiter } from '../integrations/limiters';
 import { IrpValidationError, buildInv01, getIrpClient } from '../integrations/irp/client';
 import { logger } from '../config/logger';
+import { einvoiceIrnFailures } from '../observability/metrics';
 
 export async function processEInvoice(data: {
   invoiceId: string;
@@ -34,6 +35,7 @@ export async function processEInvoice(data: {
         $inc: { 'eInvoice.attemptCount': 1 },
       },
     ).setOptions({ skipTenantScope: true });
+    einvoiceIrnFailures.inc({ reason: 'schema_invalid' });
     throw new UnrecoverableError('IRP_SCHEMA_INVALID'); // our bug; do not retry
   }
 
@@ -64,8 +66,10 @@ export async function processEInvoice(data: {
           $inc: { 'eInvoice.attemptCount': 1 },
         },
       ).setOptions({ skipTenantScope: true });
+      einvoiceIrnFailures.inc({ reason: 'irp_rejected' });
       throw new UnrecoverableError(`IRP_REJECTED: ${err.message}`);
     }
+    einvoiceIrnFailures.inc({ reason: 'irp_unavailable' });
     await Invoice.updateOne(
       { _id: invoice._id },
       { $inc: { 'eInvoice.attemptCount': 1 } },

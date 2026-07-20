@@ -8,17 +8,29 @@ import pino from 'pino';
 const level = process.env.LOG_LEVEL ?? 'info';
 const isDev = (process.env.NODE_ENV ?? 'development') === 'development';
 
+/**
+ * §27.1 — never log: Authorization, Cookie, passwordHash, totpSecretEnc, the
+ * raw AA payload, the full Razorpay webhook body, or recovery codes.
+ * Exported so the redaction test can assert the list never shrinks.
+ */
+export const REDACT_PATHS = [
+  'req.headers.authorization',
+  'req.headers.cookie',
+  'req.headers["x-razorpay-signature"]',
+  'res.headers["set-cookie"]',
+  '*.password',
+  '*.passwordHash',
+  '*.token',
+  '*.totpSecretEnc',
+  '*.recoveryCodeHashes',
+  '*.rawBody',
+  '*.aaPayload',
+];
+
 export const logger = pino({
   level,
   redact: {
-    paths: [
-      'req.headers.authorization',
-      'req.headers.cookie',
-      'res.headers["set-cookie"]',
-      '*.password',
-      '*.passwordHash',
-      '*.token',
-    ],
+    paths: REDACT_PATHS,
     censor: '[REDACTED]',
   },
   base: {

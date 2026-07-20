@@ -5,6 +5,7 @@
  */
 import { upgradePathFor } from '@finpilot/shared';
 import { AiUsage } from '../models/AiConversation';
+import { aiTokensConsumed } from '../observability/metrics';
 import { Company } from '../models/Company';
 import { Organization } from '../models/Organization';
 import { requireCompanyContext } from '../plugins/tenantScope';
@@ -29,6 +30,7 @@ export async function assertBudget(): Promise<void> {
 
 export async function recordUsage(tokens: number): Promise<void> {
   const ctx = requireCompanyContext();
+  aiTokensConsumed.inc(tokens);
   await AiUsage.findOneAndUpdate(
     { month: month() },
     { $inc: { tokensUsed: tokens }, $setOnInsert: { companyId: ctx.companyId } },

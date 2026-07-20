@@ -1,0 +1,27 @@
+# Local observability stack (plan.md §27). Optional — run alongside the main
+# compose file:  docker compose -f docker-compose.observability.yml up -d
+# Grafana: http://localhost:3001 (admin/admin) — import ops/grafana/finpilot-dashboard.json
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: finpilot-prometheus
+    volumes:
+      - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports:
+      - '9090:9090'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: finpilot-grafana
+    ports:
+      - '3001:3000'
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  grafana-data:

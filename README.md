@@ -77,4 +77,18 @@ Development follows the 24-phase plan in plan.md §32.
 | 21    | Forecast/health/anomalies (deterministic P10/50/90, drivers)        | ✅     |
 | 22    | Notifications (idempotent, preferences, overdue + GST reminders)    | ✅     |
 | 23    | Subscriptions and admin (402 + upgrade path, audited impersonation) | ✅     |
-| 24    | Observability, security, launch                                     | next   |
+| 24    | Observability, security, launch (metrics, alerts, CSP, runbooks)    | ✅     |
+
+All 24 phases of plan.md §32 are built. The staging/vendor items that cannot be
+claimed from a dev machine (load run, pen test, production-scale restore drill,
+OTel collector) are tracked honestly in
+[docs/runbooks/launch-checklist.md](docs/runbooks/launch-checklist.md).
+
+### Observability quick start
+
+```bash
+docker compose -f docker-compose.observability.yml up -d   # Prometheus :9090, Grafana :3001
+curl http://localhost:4000/metrics                          # RED + domain metrics (§27.2)
+curl http://localhost:4000/readyz                           # readiness (Mongo primary + Redis)
+bash scripts/ops/restore-drill.sh                           # quarterly backup drill (§31)
+```

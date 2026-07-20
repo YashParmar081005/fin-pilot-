@@ -10,6 +10,7 @@ import { Account } from '../models/Account';
 import { Company } from '../models/Company';
 import { JournalEntry } from '../models/JournalEntry';
 import { logger } from '../config/logger';
+import { ledgerIntegrityViolations } from '../observability/metrics';
 
 export interface IntegrityViolation {
   companyId: string;
@@ -120,6 +121,7 @@ export async function runLedgerIntegrityJob(): Promise<IntegrityViolation[]> {
     all.push(...violations);
   }
   if (all.length > 0) {
+    for (const v of all) ledgerIntegrityViolations.inc({ check: v.check }); // P1 alert feed
     logger.error({ violations: all }, 'LEDGER INTEGRITY VIOLATIONS — page the on-call');
   } else {
     logger.info({ companies: companies.length }, 'ledger integrity: clean');

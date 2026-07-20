@@ -10,6 +10,7 @@ import type { Types } from 'mongoose';
 import { AiConversation } from '../models/AiConversation';
 import { AppError } from '../utils/AppError';
 import { assertBudget, recordUsage } from './budget';
+import { aiGroundingFailures } from '../observability/metrics';
 import { rawTableFallback, validateGrounding } from './guardrails';
 import { executeTool, toolsFor, type AiTool } from './registry';
 
@@ -104,6 +105,7 @@ export async function runCopilotTurn(
       toolResults.map((r) => r.result),
     )
   ) {
+    aiGroundingFailures.inc(); // §27.2 — alerts at >2% over 1h
     messages.push({
       role: 'system',
       content:
@@ -118,6 +120,7 @@ export async function runCopilotTurn(
         toolResults.map((r) => r.result),
       )
     ) {
+      aiGroundingFailures.inc();
       answer = rawTableFallback(toolResults);
       emit({ type: 'fallback', data: {} });
     }

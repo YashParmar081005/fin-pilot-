@@ -13,6 +13,7 @@ import { requireSuperAdmin } from '../../middleware/requireSuperAdmin';
 import { validate } from '../../middleware/validate';
 import { adminService } from '../../services/admin/adminService';
 import { subscriptionService } from '../../services/admin/subscriptionService';
+import { dlqService } from '../../services/dlqService';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { ok } from '../../utils/respond';
 
@@ -59,6 +60,23 @@ adminRoutes.post(
       req.body.reason,
     );
     ok(res, result, 201);
+  }),
+);
+
+// §20.5: "A DLQ nobody can replay from is a graveyard." Inspect, fix, REPLAY.
+adminRoutes.get(
+  '/dlq',
+  asyncHandler(async (req: Request, res: Response) => {
+    const queue = typeof req.query.queue === 'string' ? req.query.queue : undefined;
+    ok(res, { deadLetters: await dlqService.list(queue) });
+  }),
+);
+
+adminRoutes.post(
+  '/dlq/:id/replay',
+  validate(z.object({ fixedData: z.unknown().optional() })),
+  asyncHandler(async (req: Request, res: Response) => {
+    ok(res, await dlqService.replay(String(req.params.id), req.body.fixedData), 201);
   }),
 );
 

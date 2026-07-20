@@ -18,6 +18,7 @@ import {
   type JournalSourceType,
 } from '../../models/JournalEntry';
 import { OutboxEvent } from '../../models/OutboxEvent';
+import { journalEntriesPosted } from '../../observability/metrics';
 import { requestContext } from '../../plugins/tenantScope';
 import { AppError } from '../../utils/AppError';
 import { financialYear } from '../../utils/financialYear';
@@ -245,6 +246,7 @@ export const GeneralLedger = {
     );
 
     // 13
+    journalEntriesPosted.inc();
     return entry!.toObject();
   },
 

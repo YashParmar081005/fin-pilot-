@@ -13,6 +13,7 @@ import { logger } from './config/logger';
 import { closeRedis, getRedis, redisStatus } from './config/redis';
 import { handleOutboxEvent, markOutboxPublished } from './jobs/maintenance';
 import { OutboxEvent } from './models/OutboxEvent';
+import { renderMetrics } from './observability/metrics';
 import { closeQueues } from './queues/infra';
 import { registerRepeatables, registerWorkers } from './queues/workers';
 
@@ -47,6 +48,16 @@ export async function startWorker(env: Env): Promise<void> {
   );
 
   const health = http.createServer((req, res) => {
+    if (req.url === '/metrics') {
+      // §27.2 — queue-side metrics (job durations, DLQ depth) live here
+      void renderMetrics()
+        .then(({ contentType, body }) => {
+          res.writeHead(200, { 'content-type': contentType });
+          res.end(body);
+        })
+        .catch(() => res.writeHead(500).end());
+      return;
+    }
     if (req.url === '/healthz') {
       const body: HealthResponse = {
         status: mongoStatus() === 'connected' && redisStatus() === 'connected' ? 'ok' : 'degraded',

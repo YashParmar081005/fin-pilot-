@@ -7,6 +7,7 @@ import { Queue, QueueEvents, UnrecoverableError, Worker, type Job, type Processo
 import { getEnv } from '../config/env';
 import { logger } from '../config/logger';
 import { DeadLetter } from '../models/DeadLetter';
+import { queueJobDuration } from '../observability/metrics';
 
 export { UnrecoverableError };
 
@@ -47,7 +48,19 @@ export function createWorker<T>(
   processor: Processor<T>,
   opts: { concurrency?: number } = {},
 ): Worker<T> {
-  const worker = new Worker<T>(name, processor, {
+  // §27.2 — every job's duration lands in the queue histogram
+  const timedProcessor: Processor<T> = async (job, token) => {
+    const endTimer = queueJobDuration.startTimer({ queue: name });
+    try {
+      const result = await processor(job, token);
+      endTimer({ status: 'ok' });
+      return result;
+    } catch (err) {
+      endTimer({ status: 'failed' });
+      throw err;
+    }
+  };
+  const worker = new Worker<T>(name, timedProcessor, {
     connection: connection(),
     concurrency: opts.concurrency ?? 4,
     settings: {

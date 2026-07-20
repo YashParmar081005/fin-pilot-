@@ -1,0 +1,45 @@
+# Alert rules — the §27.4 table, verbatim. P1 pages; P2 notifies the channel;
+# P3 lands in the daily digest. Runbooks: docs/runbooks/alerts-oncall.md
+groups:
+  - name: finpilot-p1
+    rules:
+      - alert: LedgerIntegrityViolation
+        expr: increase(finpilot_ledger_integrity_violations_total[1m]) > 0
+        for: 1m
+        labels: { severity: P1 }
+        annotations:
+          summary: 'Ledger integrity violation — MUST be 0'
+          runbook: docs/runbooks/alerts-oncall.md#ledger-integrity
+
+  - name: finpilot-p2
+    rules:
+      - alert: DlqDepth
+        expr: finpilot_dlq_depth > 10
+        for: 5m
+        labels: { severity: P2 }
+        annotations: { summary: 'DLQ depth > 10 for 5m — inspect and replay' }
+      - alert: ApiP99Latency
+        expr: histogram_quantile(0.99, sum by (le) (rate(finpilot_http_request_duration_seconds_bucket[5m]))) > 2
+        for: 5m
+        labels: { severity: P2 }
+        annotations: { summary: 'API p99 latency > 2s for 5m' }
+      - alert: Api5xxRate
+        expr: >
+          sum(rate(finpilot_http_requests_total{status=~"5.."}[5m]))
+          / sum(rate(finpilot_http_requests_total[5m])) > 0.01
+        for: 5m
+        labels: { severity: P2 }
+        annotations: { summary: '5xx rate > 1% for 5m' }
+
+  - name: finpilot-p3
+    rules:
+      - alert: EInvoiceFailureRate
+        expr: increase(finpilot_einvoice_irn_failures_total[1h]) > 5
+        labels: { severity: P3 }
+        annotations: { summary: 'e-invoice failures elevated over the last hour' }
+      - alert: AiGroundingFailureRate
+        expr: >
+          increase(finpilot_ai_grounding_failures_total[1h])
+          / clamp_min(increase(finpilot_http_requests_total{route=~".*ai.*"}[1h]), 1) > 0.02
+        labels: { severity: P3 }
+        annotations: { summary: 'AI grounding failure rate > 2% over 1h' }

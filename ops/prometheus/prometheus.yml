@@ -1,0 +1,25 @@
+# Prometheus scrape config (plan.md §27.2). The api and worker expose
+# /metrics on their own ports; nginx never proxies /metrics to the internet.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 30s
+
+rule_files:
+  - alerts.yml
+
+scrape_configs:
+  - job_name: finpilot-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['host.docker.internal:4000']
+        labels: { service: api }
+  - job_name: finpilot-worker
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['host.docker.internal:4001']
+        labels: { service: worker }
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']

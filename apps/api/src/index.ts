@@ -2,6 +2,7 @@
  * Process entrypoint — PROCESS_TYPE selects api | ws | worker (plan.md §5.1).
  * One monorepo, three deployables. Never let the API process consume a queue.
  */
+import * as Sentry from '@sentry/node';
 import { connectMongo, disconnectMongo } from './config/db';
 import { getEnv, type Env } from './config/env';
 import { logger } from './config/logger';
@@ -37,6 +38,13 @@ async function main(): Promise<void> {
     // env validation failed — print the readable message and refuse to boot (§7)
     console.error(err instanceof Error ? err.message : String(err));
     process.exit(1);
+  }
+
+  // §25/§27 — Sentry only when a DSN is configured; captureException is a
+  // no-op otherwise, so the errorHandler needs no guard.
+  if (env.SENTRY_DSN) {
+    Sentry.init({ dsn: env.SENTRY_DSN, environment: env.NODE_ENV });
+    logger.info('sentry initialised');
   }
 
   switch (env.PROCESS_TYPE) {
