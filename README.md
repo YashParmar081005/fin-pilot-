@@ -75,4 +75,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 19    | AI Copilot (read tools, grounding I9, fail-closed budget, SSE)    | ✅     |
 | 20    | Write tools + proposals (I10 confirm, TTL, preview ignored)       | ✅     |
 | 21    | Forecast/health/anomalies (deterministic P10/50/90, drivers)      | ✅     |
-| 22    | Notifications                                                     | next   |
+| 22    | Notifications (idempotent, preferences, overdue + GST reminders)  | ✅     |
+| 23    | Subscriptions and admin                                           | next   |

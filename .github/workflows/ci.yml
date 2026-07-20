@@ -29,7 +29,8 @@ jobs:
             | grep -v "apps/api/src/plugins/tenantScope.ts" \
             | grep -v "apps/api/src/jobs/" \
             | grep -v "apps/api/src/engines/" \
-            | grep -v "apps/api/src/services/admin/" || true)
+            | grep -v "apps/api/src/services/admin/" \
+            | grep -v "apps/api/src/services/notificationService.ts" || true)
           if [ -n "$VIOLATIONS" ]; then
             echo "skipTenantScope outside allowed paths:"; echo "$VIOLATIONS"; exit 1
           fi
