@@ -41,6 +41,8 @@ export const ERROR_MESSAGES: Partial<Record<ErrorCode, string>> = {
   SYS_IDEMPOTENCY_KEY_REQUIRED: 'This request needs an Idempotency-Key header.',
   SYS_IDEMPOTENCY_KEY_REUSE: 'This Idempotency-Key was already used with a different request.',
   SYS_REQUEST_IN_PROGRESS: 'The same request is already being processed. Retry shortly.',
+  AI_QUOTA_EXCEEDED: 'Your monthly AI budget is used up. Upgrade to continue.',
+  AI_UNKNOWN_TOOL: 'The assistant referenced a tool that does not exist.',
   SYS_VALIDATION_FAILED: 'The request contains invalid fields.',
   SYS_DUPLICATE_KEY: 'A record with this value already exists.',
   SYS_CONCURRENT_MODIFICATION: 'This record was changed by someone else. Reload and retry.',
