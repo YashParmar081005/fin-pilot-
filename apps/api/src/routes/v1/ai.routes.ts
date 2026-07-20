@@ -2,14 +2,21 @@
 import { Router, type Request, type Response } from 'express';
 import { Types } from 'mongoose';
 import { z } from 'zod';
+import { createInvoiceSchema, createJournalEntrySchema } from '@finpilot/shared';
 import { runCopilotTurn } from '../../ai/gateway';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
+import { idempotency } from '../../middleware/idempotency';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { AiConversation, AiUsage } from '../../models/AiConversation';
+import { AiProposal } from '../../models/AiProposal';
+import { invoiceService } from '../../services/invoiceService';
+import { journalService } from '../../services/journalService';
+import { imsService } from '../../services/imsService';
 import { requestContext, requireCompanyContext } from '../../plugins/tenantScope';
 import { permissionCache } from '../../services/permissionCache';
+import { AppError } from '../../utils/AppError';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { ok } from '../../utils/respond';
 
@@ -53,6 +60,76 @@ aiRoutes.post(
       emit({ type: 'error', data: { code, status } });
     }
     res.end();
+  }),
+);
+
+/**
+ * I10 confirm: re-validates the PAYLOAD through the same schemas and replays
+ * it through the SAME services a human uses. The stored preview is ignored —
+ * every amount is recomputed (I5). Requires ai:write on top of ai:read.
+ */
+aiRoutes.post(
+  '/proposals/:id/confirm',
+  authorize('ai:write'),
+  idempotency,
+  asyncHandler(async (req: Request, res: Response) => {
+    const ctx = requireCompanyContext();
+    const proposal = await AiProposal.findOne({ _id: req.params.id });
+    if (!proposal) throw new AppError('SYS_NOT_FOUND', 404);
+    if (proposal.status !== 'proposed')
+      throw new AppError('DOC_INVALID_STATE', 409, { status: proposal.status });
+    if (proposal.expiresAt <= new Date()) {
+      proposal.status = 'expired';
+      await proposal.save();
+      throw new AppError('AI_PROPOSAL_EXPIRED', 409, { expiresAt: proposal.expiresAt });
+    }
+
+    let resultId: string;
+    let result: unknown;
+    if (proposal.type === 'invoice') {
+      const input = createInvoiceSchema.parse(proposal.payload); // full re-validation
+      const invoice = await invoiceService.createDraft(input);
+      resultId = String(invoice._id);
+      result = {
+        invoiceId: resultId,
+        grandTotalPaise: invoice.grandTotalPaise,
+        status: invoice.status,
+      };
+    } else if (proposal.type === 'journal_entry') {
+      const input = createJournalEntrySchema.parse(proposal.payload);
+      const entry = await journalService.postManual(input);
+      resultId = String(entry._id);
+      result = { journalEntryId: resultId, entryNumber: entry.entryNumber };
+    } else {
+      const input = z
+        .object({
+          recordId: z.string(),
+          action: z.enum(['accept', 'reject', 'pending']),
+          remarks: z.string().optional(),
+        })
+        .parse(proposal.payload);
+      await imsService.act([input.recordId], input.action, input.remarks);
+      resultId = input.recordId;
+      result = { recordId: resultId, action: input.action };
+    }
+
+    proposal.status = 'confirmed';
+    proposal.confirmedBy = ctx.userId!;
+    proposal.resultId = new Types.ObjectId(resultId);
+    await proposal.save();
+    ok(res, { proposalId: String(proposal._id), result }, 201);
+  }),
+);
+
+aiRoutes.post(
+  '/proposals/:id/reject',
+  authorize('ai:write'),
+  asyncHandler(async (req: Request, res: Response) => {
+    const proposal = await AiProposal.findOne({ _id: req.params.id });
+    if (!proposal || proposal.status !== 'proposed') throw new AppError('DOC_INVALID_STATE', 409);
+    proposal.status = 'rejected';
+    await proposal.save();
+    ok(res, { rejected: true });
   }),
 );
 
