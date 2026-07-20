@@ -12,6 +12,7 @@ import { reconciliationRoutes } from './reconciliation.routes';
 import { jobRoutes, reportRoutes } from './report.routes';
 import { billFromDocumentRoutes, documentRoutes } from './document.routes';
 import { aiRoutes } from './ai.routes';
+import { forecastRoutes } from './forecast.routes';
 import { companyRoutes, inviteRoutes } from './company.routes';
 
 export const v1Routes = Router();
@@ -36,3 +37,4 @@ v1Routes.use('/jobs', jobRoutes);
 v1Routes.use('/documents', documentRoutes);
 v1Routes.use('/bills', billFromDocumentRoutes);
 v1Routes.use('/ai', aiRoutes);
+v1Routes.use('/forecast', forecastRoutes);

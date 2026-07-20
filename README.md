@@ -74,4 +74,5 @@ Development follows the 24-phase plan in plan.md §32.
 | 18    | Documents/OCR (₹0 text layer, confidence contract, bill-from-doc) | ✅     |
 | 19    | AI Copilot (read tools, grounding I9, fail-closed budget, SSE)    | ✅     |
 | 20    | Write tools + proposals (I10 confirm, TTL, preview ignored)       | ✅     |
-| 21    | Forecast, health score, anomalies                                 | next   |
+| 21    | Forecast/health/anomalies (deterministic P10/50/90, drivers)      | ✅     |
+| 22    | Notifications                                                     | next   |

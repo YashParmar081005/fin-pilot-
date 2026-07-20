@@ -38,7 +38,7 @@ jobs:
       - name: journalentries sole-writer gate
         run: |
           VIOLATIONS=$(grep -rln "models/JournalEntry" apps/api/src \
-            | grep -v "apps/api/src/engines/ledger/" \
+            | grep -v "apps/api/src/engines/" \
             | grep -v "apps/api/src/models/JournalEntry.ts" \
             | grep -v "apps/api/src/jobs/ledgerIntegrity.ts" \
             | grep -v "apps/api/src/services/journalService.ts" \

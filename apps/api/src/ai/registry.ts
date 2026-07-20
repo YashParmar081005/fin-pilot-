@@ -7,6 +7,7 @@
 import { z } from 'zod';
 import { Types } from 'mongoose';
 import { createInvoiceSchema, createJournalEntrySchema } from '@finpilot/shared';
+import { forecastEngine } from '../engines/forecast';
 import { reportService } from '../services/reportService';
 import { requestContext } from '../plugins/tenantScope';
 import { AiToolCall } from '../models/AiConversation';
@@ -91,6 +92,21 @@ export const TOOLS: AiTool[] = [
     permission: 'report:read',
     schema: asOfArg,
     execute: (args) => reportService.cashFlow(asOf(args)),
+  },
+  // Phase 21 narration layer — the Copilot narrates DETERMINISTIC numbers
+  {
+    name: 'getCashFlowForecast',
+    description: '13-week P10/P50/P90 cash forecast (deterministic model)',
+    permission: 'report:read',
+    schema: z.object({}),
+    execute: () => forecastEngine.cashFlow(),
+  },
+  {
+    name: 'getHealthScore',
+    description: 'Six-component business health score with drivers',
+    permission: 'report:read',
+    schema: z.object({}),
+    execute: () => forecastEngine.healthScore(),
   },
 ];
 
