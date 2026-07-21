@@ -1,25 +1,92 @@
 /**
- * The shared UI kit — one dark theme, zero dependencies. Money is formatted
- * ONLY here via formatINR (I1: display formatting happens once, at the React
- * boundary). Rupee inputs convert to integer paise on the way out.
+ * The shared UI kit. All colors are CSS variables from index.css, so every
+ * page follows the light/dark toggle with no per-page work. Money is
+ * formatted ONLY here via formatINR (I1: display formatting happens once,
+ * at the React boundary) and rendered in the mono numerals face.
  */
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { formatINR } from '@finpilot/shared';
 import { RequestError } from './api';
 
+/** Theme tokens as var() references — safe in inline styles everywhere. */
 export const C = {
-  bg: '#0F172A',
-  panel: '#1E293B',
-  panel2: '#243044',
-  border: '#334155',
-  text: '#E2E8F0',
-  muted: '#94A3B8',
-  accent: '#0EA5E9',
-  accentText: '#082F49',
-  green: '#34D399',
-  red: '#F87171',
-  amber: '#FBBF24',
+  bg: 'var(--bg)',
+  panel: 'var(--panel)',
+  panel2: 'var(--panel-2)',
+  border: 'var(--border)',
+  text: 'var(--text)',
+  muted: 'var(--muted)',
+  accent: 'var(--accent)',
+  accent2: 'var(--accent-2)',
+  accentSoft: 'var(--accent-soft)',
+  accentText: 'var(--on-accent)',
+  green: 'var(--green)',
+  red: 'var(--red)',
+  amber: 'var(--amber)',
 };
+
+// ── theme ───────────────────────────────────────────────────────────────────
+
+export type Theme = 'light' | 'dark';
+
+export function applyTheme(theme: Theme): void {
+  document.documentElement.dataset.theme = theme;
+  try {
+    localStorage.setItem('fp-theme', theme); // a preference, never a token
+  } catch {
+    /* private mode — fine */
+  }
+}
+
+export function initTheme(): Theme {
+  let stored: string | null = null;
+  try {
+    stored = localStorage.getItem('fp-theme');
+  } catch {
+    /* ignore */
+  }
+  const theme: Theme =
+    stored === 'light' || stored === 'dark'
+      ? stored
+      : window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+  applyTheme(theme);
+  return theme;
+}
+
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>(
+    (document.documentElement.dataset.theme as Theme) ?? 'light',
+  );
+  return (
+    <button
+      className="fp-btn"
+      title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+      onClick={() => {
+        const next = theme === 'light' ? 'dark' : 'light';
+        applyTheme(next);
+        setTheme(next);
+      }}
+      style={{
+        background: C.panel2,
+        color: C.text,
+        border: `1px solid ${C.border}`,
+        borderRadius: 999,
+        width: 34,
+        height: 34,
+        fontSize: '0.95rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {theme === 'light' ? '🌙' : '☀️'}
+    </button>
+  );
+}
+
+// ── primitives ──────────────────────────────────────────────────────────────
 
 export const S: Record<string, CSSProperties> = {
   input: {
@@ -27,14 +94,14 @@ export const S: Record<string, CSSProperties> = {
     width: '100%',
     boxSizing: 'border-box',
     margin: '0.25rem 0 0.75rem',
-    padding: '0.5rem 0.7rem',
-    borderRadius: 8,
+    padding: '0.55rem 0.75rem',
+    borderRadius: 10,
     border: `1px solid ${C.border}`,
-    background: C.bg,
+    background: C.panel,
     color: C.text,
     fontSize: '0.9rem',
   },
-  label: { fontSize: '0.8rem', color: C.muted },
+  label: { fontSize: '0.78rem', color: C.muted, fontWeight: 600 },
 };
 
 export function Btn({
@@ -52,30 +119,26 @@ export function Btn({
   small?: boolean;
   type?: 'submit' | 'button';
 }) {
-  const bg =
+  const styles: CSSProperties =
     kind === 'primary'
-      ? C.accent
+      ? {} // gradient lives in the class
       : kind === 'danger'
-        ? C.red
+        ? { background: C.red, color: '#fff' }
         : kind === 'success'
-          ? C.green
-          : C.border;
-  const fg = kind === 'ghost' ? C.text : C.accentText;
+          ? { background: C.green, color: '#fff' }
+          : { background: C.panel2, color: C.text, border: `1px solid ${C.border}` };
   return (
     <button
       type={type ?? (onClick ? 'button' : 'submit')}
       onClick={onClick}
       disabled={disabled}
+      className={`fp-btn${kind === 'primary' ? ' fp-btn-primary' : ''}`}
       style={{
-        padding: small ? '0.3rem 0.7rem' : '0.5rem 1.1rem',
-        borderRadius: 8,
-        border: 'none',
-        background: bg,
-        color: fg,
-        fontWeight: 600,
-        cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
+        padding: small ? '0.32rem 0.75rem' : '0.55rem 1.15rem',
         fontSize: small ? '0.8rem' : '0.9rem',
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? 'default' : 'pointer',
+        ...styles,
       }}
     >
       {children}
@@ -93,15 +156,7 @@ export function Card({
   actions?: ReactNode;
 }) {
   return (
-    <section
-      style={{
-        background: C.panel,
-        borderRadius: 12,
-        padding: '1.1rem 1.3rem',
-        marginBottom: '1rem',
-        border: `1px solid ${C.border}`,
-      }}
-    >
+    <section className="fp-card" style={{ padding: '1.15rem 1.35rem', marginBottom: '1rem' }}>
       {(title || actions) && (
         <div
           style={{
@@ -109,10 +164,14 @@ export function Card({
             justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: '0.8rem',
+            flexWrap: 'wrap',
+            gap: 8,
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>{title}</h3>
-          <div style={{ display: 'flex', gap: 8 }}>{actions}</div>
+          <h3 style={{ margin: 0, fontSize: '1rem', letterSpacing: '-0.01em' }}>{title}</h3>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            {actions}
+          </div>
         </div>
       )}
       {children}
@@ -149,7 +208,10 @@ export function Tbl({
   }
   return (
     <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.87rem' }}>
+      <table
+        className="fp-table"
+        style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.87rem' }}
+      >
         <thead>
           <tr>
             {head.map((h, i) => (
@@ -157,10 +219,13 @@ export function Tbl({
                 key={i}
                 style={{
                   textAlign: 'left',
-                  padding: '0.45rem 0.6rem',
+                  padding: '0.5rem 0.65rem',
                   borderBottom: `2px solid ${C.border}`,
                   color: C.muted,
-                  fontWeight: 600,
+                  fontWeight: 700,
+                  fontSize: '0.72rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -175,7 +240,7 @@ export function Tbl({
               {r.map((cell, j) => (
                 <td
                   key={j}
-                  style={{ padding: '0.45rem 0.6rem', borderBottom: `1px solid ${C.border}` }}
+                  style={{ padding: '0.5rem 0.65rem', borderBottom: `1px solid ${C.border}` }}
                 >
                   {cell}
                 </td>
@@ -191,7 +256,11 @@ export function Tbl({
 export function Money({ paise, colored }: { paise: number | null | undefined; colored?: boolean }) {
   if (paise === null || paise === undefined) return <span style={{ color: C.muted }}>—</span>;
   const color = colored ? (paise < 0 ? C.red : C.green) : C.text;
-  return <span style={{ fontVariantNumeric: 'tabular-nums', color }}>{formatINR(paise)}</span>;
+  return (
+    <span className="fp-mono" style={{ color, fontSize: '0.95em' }}>
+      {formatINR(paise)}
+    </span>
+  );
 }
 
 const BADGE_COLORS: Record<string, string> = {
@@ -228,8 +297,9 @@ export function Badge({ value }: { value: string }) {
         border: `1px solid ${color}`,
         color,
         borderRadius: 999,
-        padding: '0.05rem 0.55rem',
+        padding: '0.08rem 0.6rem',
         fontSize: '0.72rem',
+        fontWeight: 600,
         whiteSpace: 'nowrap',
       }}
     >
@@ -244,7 +314,22 @@ export function Err({ error }: { error: unknown }) {
     error instanceof RequestError
       ? `${error.error.code}: ${error.error.message}${error.error.details ? ' — ' + JSON.stringify(error.error.details) : ''}`
       : String(error);
-  return <p style={{ color: C.red, fontSize: '0.85rem', whiteSpace: 'pre-wrap' }}>{msg}</p>;
+  return (
+    <p
+      className="fp-msg"
+      style={{
+        color: C.red,
+        fontSize: '0.85rem',
+        whiteSpace: 'pre-wrap',
+        background: 'color-mix(in srgb, var(--red) 9%, transparent)',
+        border: `1px solid color-mix(in srgb, var(--red) 30%, transparent)`,
+        borderRadius: 10,
+        padding: '0.5rem 0.75rem',
+      }}
+    >
+      {msg}
+    </p>
+  );
 }
 
 export function dateStr(value: string | Date | null | undefined): string {

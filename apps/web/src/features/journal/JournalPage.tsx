@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { formatINR, toPaise } from '@finpilot/shared';
 import { api, RequestError } from '../../lib/api';
+import { C } from '../../lib/ui';
 import type { AccountRow } from '../accounts/AccountsTree';
 
 // Manual journal vouchers (Phase 5) — post and reverse against the engine.
@@ -32,25 +33,27 @@ interface FormLine {
 const S: Record<string, React.CSSProperties> = {
   input: {
     padding: '0.4rem 0.6rem',
-    borderRadius: 6,
-    border: '1px solid #334155',
-    background: '#0F172A',
-    color: '#E2E8F0',
+    borderRadius: 8,
+    border: `1px solid ${C.border}`,
+    background: C.panel,
+    color: C.text,
     fontSize: '0.85rem',
+    fontFamily: 'inherit',
   },
   button: {
     padding: '0.4rem 0.9rem',
-    borderRadius: 6,
+    borderRadius: 8,
     border: 'none',
-    background: '#0EA5E9',
-    color: '#082F49',
-    fontWeight: 600,
+    background: C.accent,
+    color: C.accentText,
+    fontWeight: 700,
     cursor: 'pointer',
     fontSize: '0.85rem',
+    fontFamily: 'inherit',
   },
   row: { display: 'flex', gap: 8, alignItems: 'center', margin: '0.35rem 0' },
-  muted: { color: '#94A3B8' },
-  error: { color: '#FCA5A5' },
+  muted: { color: C.muted },
+  error: { color: C.red },
 };
 
 export function JournalPage({ accounts }: { accounts: AccountRow[] }) {
@@ -178,7 +181,7 @@ export function JournalPage({ accounts }: { accounts: AccountRow[] }) {
             {lines.length > 2 && (
               <button
                 type="button"
-                style={{ ...S.button, background: '#7F1D1D', color: '#FCA5A5' }}
+                style={{ ...S.button, background: C.red, color: '#fff' }}
                 onClick={() => setLines((prev) => prev.filter((_, idx) => idx !== i))}
               >
                 ×
@@ -189,7 +192,12 @@ export function JournalPage({ accounts }: { accounts: AccountRow[] }) {
         <div style={S.row}>
           <button
             type="button"
-            style={{ ...S.button, background: '#334155', color: '#E2E8F0' }}
+            style={{
+              ...S.button,
+              background: C.panel2,
+              color: C.text,
+              border: `1px solid ${C.border}`,
+            }}
             onClick={() =>
               setLines((prev) => [...prev, { accountId: '', side: 'debit', rupees: '' }])
             }
@@ -209,30 +217,32 @@ export function JournalPage({ accounts }: { accounts: AccountRow[] }) {
         <div
           key={entry.id}
           style={{
-            borderTop: '1px solid #334155',
+            borderTop: `1px solid ${C.border}`,
             padding: '0.5rem 0',
             opacity: entry.status === 'reversed' ? 0.55 : 1,
           }}
         >
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ fontFamily: 'monospace', color: '#94A3B8' }}>{entry.entryNumber}</span>
+            <span className="fp-mono" style={{ color: C.muted }}>
+              {entry.entryNumber}
+            </span>
             <span>{entry.narration}</span>
             <span style={S.muted}>{new Date(entry.date).toLocaleDateString('en-IN')}</span>
-            <span style={{ marginLeft: 'auto', fontFamily: 'monospace' }}>
+            <span className="fp-mono" style={{ marginLeft: 'auto' }}>
               {formatINR(entry.totalDebitPaise)}
             </span>
             {entry.status === 'posted' && !entry.reversedByEntryId ? (
               <button
-                style={{ ...S.button, background: '#7F1D1D', color: '#FCA5A5' }}
+                style={{ ...S.button, background: C.red, color: '#fff' }}
                 onClick={() => void reverse(entry.id)}
               >
                 reverse
               </button>
             ) : (
-              <span style={{ fontSize: '0.75rem', color: '#F87171' }}>{entry.status}</span>
+              <span style={{ fontSize: '0.75rem', color: C.red }}>{entry.status}</span>
             )}
           </div>
-          <div style={{ fontSize: '0.8rem', color: '#94A3B8', paddingLeft: 8 }}>
+          <div style={{ fontSize: '0.8rem', color: C.muted, paddingLeft: 8 }}>
             {entry.lines.map((l) => (
               <div key={l.lineNo}>
                 {l.debitPaise > 0

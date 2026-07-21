@@ -1,0 +1,230 @@
+/*
+ * FinPilot theme — warm paper light / warm black dark, orange + amber
+ * accents. Every color the app uses is a variable here; components refer
+ * to var(--x) only, so the [data-theme] attribute swaps the whole app.
+ */
+
+:root,
+:root[data-theme='light'] {
+  --bg: #fbf7f1;
+  --panel: #ffffff;
+  --panel-2: #f4f0e8;
+  --border: #ebe4d8;
+  --text: #1b1712;
+  --muted: #6f665b;
+  --accent: #e85d0b;
+  --accent-2: #f59e1b;
+  --accent-soft: #fce9d8;
+  --on-accent: #ffffff;
+  --green: #2f8f5b;
+  --red: #c6482b;
+  --amber: #e8b004;
+  --shadow: 0 1px 2px rgba(27, 23, 18, 0.05), 0 6px 24px rgba(27, 23, 18, 0.06);
+  --shadow-lift: 0 4px 8px rgba(27, 23, 18, 0.08), 0 12px 36px rgba(232, 93, 11, 0.12);
+}
+
+:root[data-theme='dark'] {
+  --bg: #171310;
+  --panel: #211c17;
+  --panel-2: #2a241e;
+  --border: #37302a;
+  --text: #f4f0e8;
+  --muted: #a79c8c;
+  --accent: #ff7c2e;
+  --accent-2: #fbbf3b;
+  --accent-soft: #3a2417;
+  --on-accent: #1b1712;
+  --green: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf3b;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 28px rgba(0, 0, 0, 0.35);
+  --shadow-lift: 0 4px 8px rgba(0, 0, 0, 0.45), 0 12px 36px rgba(255, 124, 46, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+  transition: background 0.35s ease, color 0.35s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ── animations ─────────────────────────────────────────────────────────── */
+
+@keyframes fp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fp-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+@keyframes fp-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-25px, 25px) scale(0.95);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes fp-shimmer {
+  from {
+    background-position: -400px 0;
+  }
+  to {
+    background-position: 400px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── components ─────────────────────────────────────────────────────────── */
+
+.fp-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  animation: fp-fade-up 0.35s ease both;
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.25s ease;
+}
+
+.fp-btn {
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s;
+}
+
+.fp-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lift);
+}
+
+.fp-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.fp-btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--on-accent);
+}
+
+.fp-input {
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.35s ease;
+}
+
+.fp-input:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.fp-nav-item {
+  transition: background 0.18s ease, color 0.18s ease, padding-left 0.18s ease;
+  border-left: 3px solid transparent;
+}
+
+.fp-nav-item:hover {
+  background: var(--panel-2);
+  color: var(--text) !important;
+}
+
+.fp-nav-item.active {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent) !important;
+  font-weight: 700;
+}
+
+.fp-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.fp-table tbody tr:hover {
+  background: var(--panel-2);
+}
+
+.fp-mono {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.fp-banner {
+  animation: fp-pulse 1.6s ease-in-out infinite;
+}
+
+.fp-skeleton {
+  color: transparent !important;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--panel-2) 25%, var(--border) 50%, var(--panel-2) 75%);
+  background-size: 800px 100%;
+  animation: fp-shimmer 1.4s linear infinite;
+}
+
+/* auth hero blobs */
+.fp-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  animation: fp-drift 14s ease-in-out infinite;
+}
+
+.fp-msg {
+  animation: fp-fade-up 0.25s ease both;
+}

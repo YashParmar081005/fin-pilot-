@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { formatINR, normalBalance, type AccountType } from '@finpilot/shared';
+import { C } from '../../lib/ui';
 
 export interface AccountRow {
   id: string;
@@ -16,11 +17,11 @@ export interface AccountRow {
 }
 
 const typeColors: Record<AccountType, string> = {
-  asset: '#38BDF8',
-  liability: '#F87171',
-  equity: '#A78BFA',
-  income: '#34D399',
-  expense: '#FBBF24',
+  asset: 'var(--accent)',
+  liability: 'var(--red)',
+  equity: 'var(--accent-2)',
+  income: 'var(--green)',
+  expense: 'var(--amber)',
 };
 
 interface TreeNode {
@@ -68,32 +69,35 @@ function Node({ node }: { node: TreeNode }) {
             width: 18,
             border: 'none',
             background: 'none',
-            color: '#64748B',
+            color: C.muted,
             cursor: hasChildren ? 'pointer' : 'default',
             visibility: hasChildren ? 'visible' : 'hidden',
           }}
         >
           {open ? '▾' : '▸'}
         </button>
-        <span style={{ color: '#64748B', fontFamily: 'monospace' }}>{account.code}</span>
+        <span className="fp-mono" style={{ color: C.muted }}>
+          {account.code}
+        </span>
         <span style={{ fontWeight: hasChildren ? 600 : 400 }}>{account.name}</span>
         <span
           style={{
             fontSize: '0.7rem',
             padding: '0.05rem 0.45rem',
             borderRadius: 999,
-            background: '#0F172A',
+            background: C.panel2,
+            border: `1px solid ${C.border}`,
             color: typeColors[account.type],
           }}
         >
           {account.type} · {normalBalance(account.type)}
         </span>
         {account.isSystem && (
-          <span style={{ fontSize: '0.7rem', color: '#64748B' }} title="system account">
+          <span style={{ fontSize: '0.7rem', color: C.muted }} title="system account">
             ⚙
           </span>
         )}
-        <span style={{ marginLeft: 'auto', fontFamily: 'monospace', color: '#94A3B8' }}>
+        <span className="fp-mono" style={{ marginLeft: 'auto', color: C.muted }}>
           {formatINR(account.currentBalancePaise)}
         </span>
       </div>
