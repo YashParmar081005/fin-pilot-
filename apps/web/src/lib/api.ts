@@ -124,15 +124,42 @@ export async function sse(
   let buffer = '';
   for (;;) {
     const { done, value } = await reader.read();
-    if (done) break;
+    if (done) {
+      if (buffer.trim()) {
+        const type = /^event:\s*(.+)$/m.exec(buffer)?.[1]?.trim();
+        const dataStr = /^data:\s*(.+)$/m.exec(buffer)?.[1]?.trim();
+        if (type) {
+          let data: unknown = null;
+          if (dataStr) {
+            try {
+              data = JSON.parse(dataStr);
+            } catch {
+              data = dataStr;
+            }
+          }
+          onEvent({ type, data });
+        }
+      }
+      break;
+    }
     buffer += decoder.decode(value, { stream: true });
-    let sep;
-    while ((sep = buffer.indexOf('\n\n')) >= 0) {
-      const frame = buffer.slice(0, sep);
-      buffer = buffer.slice(sep + 2);
-      const type = /^event: (.+)$/m.exec(frame)?.[1];
-      const data = /^data: (.+)$/m.exec(frame)?.[1];
-      if (type) onEvent({ type, data: data ? (JSON.parse(data) as unknown) : null });
+    let match;
+    while ((match = /\r?\n\r?\n/.exec(buffer)) !== null) {
+      const frame = buffer.slice(0, match.index);
+      buffer = buffer.slice(match.index + match[0].length);
+      const type = /^event:\s*(.+)$/m.exec(frame)?.[1]?.trim();
+      const dataStr = /^data:\s*(.+)$/m.exec(frame)?.[1]?.trim();
+      if (type) {
+        let data: unknown = null;
+        if (dataStr) {
+          try {
+            data = JSON.parse(dataStr);
+          } catch {
+            data = dataStr;
+          }
+        }
+        onEvent({ type, data });
+      }
     }
   }
 }

@@ -9,10 +9,12 @@ import { logger } from './config/logger';
 import { closeRedis, getRedis } from './config/redis';
 import { buildApp } from './server';
 import { startWorker } from './worker';
+import { initLlmProvider } from './ai/provider';
 
 async function startApi(env: Env): Promise<void> {
   await connectMongo(env);
   getRedis(env, 'cache');
+  initLlmProvider();
 
   const app = buildApp('api');
   const server = app.listen(env.PORT, () => {

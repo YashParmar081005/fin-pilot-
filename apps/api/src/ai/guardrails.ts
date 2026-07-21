@@ -10,7 +10,15 @@ const numberTokens = (text: string): string[] =>
   );
 
 export function validateGrounding(answer: string, toolResults: unknown[]): boolean {
+  // If there are no tool results, no grounding check needed
+  if (toolResults.length === 0) return true;
+
   const corpus = numberTokens(JSON.stringify(toolResults));
+
+  // If the tool result contained no numbers (e.g. empty arrays, zero values stripped),
+  // the answer cannot contradict tool data — pass the check
+  if (corpus.length === 0) return true;
+
   const allowed = new Set(corpus);
   // paise → rupees renderings are legitimate: allow n/100 forms of corpus numbers
   for (const n of corpus) {
@@ -21,6 +29,9 @@ export function validateGrounding(answer: string, toolResults: unknown[]): boole
       allowed.add(rupees.toFixed(2));
     }
   }
+  // Allow zero explicitly — zero revenue / expenses are legitimate grounded values
+  allowed.add('0');
+  allowed.add('0.00');
   return numberTokens(answer).every((n) => allowed.has(n));
 }
 

@@ -60,6 +60,10 @@ function Logo({ size = '1.15rem' }: { size?: string }) {
   );
 }
 
+import { EyeIcon } from './components/EyeIcon';
+import { PasswordSuggestions } from './components/PasswordSuggestions';
+import { evaluatePassword, isValidEmail } from './utils/passwordUtils';
+
 // ── auth page ───────────────────────────────────────────────────────────────
 
 const SELLING_POINTS = [
@@ -73,12 +77,50 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [blinkingPass, setBlinkingPass] = useState(false);
+  const [blinkingConfirm, setBlinkingConfirm] = useState(false);
+  const [touchedEmail, setTouchedEmail] = useState(false);
+
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
 
+  const isEmailValid = isValidEmail(email);
+  const { checks: pwdChecks, strength: pwdStrength } = evaluatePassword(password);
+  const pwdScore = pwdStrength.score;
+
+  function togglePassVisibility() {
+    setBlinkingPass(true);
+    setShowPassword((prev) => !prev);
+    setTimeout(() => setBlinkingPass(false), 300);
+  }
+
+  function toggleConfirmVisibility() {
+    setBlinkingConfirm(true);
+    setShowConfirmPassword((prev) => !prev);
+    setTimeout(() => setBlinkingConfirm(false), 300);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isEmailValid) {
+      setError(new Error('Please enter a valid email address (e.g. name@domain.com)'));
+      return;
+    }
+    if (mode === 'register') {
+      if (password !== confirmPassword) {
+        setError(new Error('Passwords do not match'));
+        return;
+      }
+      if (pwdScore < 3) {
+        setError(new Error('Password must be stronger and meet the safety criteria'));
+        return;
+      }
+    }
     setBusy(true);
     setError(null);
     try {
@@ -191,7 +233,7 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
         <div style={{ position: 'absolute', top: 18, right: 18 }}>
           <ThemeToggle />
         </div>
-        <div className="fp-card" style={{ width: 400, padding: '2rem 2.2rem' }}>
+        <div className="fp-card" style={{ width: 420, padding: '2rem 2.2rem' }}>
           <Logo size="1.4rem" />
           <h2 style={{ margin: '1.1rem 0 0.25rem', fontSize: '1.3rem', letterSpacing: '-0.02em' }}>
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
@@ -209,37 +251,206 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                   style={S.input}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
                   required
                 />
               </Field>
             )}
+
             <Field label="Email">
               <input
                 className="fp-input"
-                style={S.input}
+                style={{
+                  ...S.input,
+                  borderColor: touchedEmail && !isEmailValid ? C.red : undefined,
+                }}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => setTouchedEmail(true)}
+                placeholder="you@company.com"
                 required
               />
+              {touchedEmail && !isEmailValid && (
+                <div style={{ color: C.red, fontSize: '0.76rem', marginTop: 4 }}>
+                  Please enter a valid email address
+                </div>
+              )}
             </Field>
+
             <Field label="Password">
-              <input
-                className="fp-input"
-                style={S.input}
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                minLength={8}
-                required
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  className="fp-input"
+                  style={{ ...S.input, width: '100%', paddingRight: '2.5rem' }}
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  minLength={8}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={togglePassVisibility}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute',
+                    right: 8,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: C.muted,
+                    padding: 4,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <EyeIcon show={showPassword} blinking={blinkingPass} />
+                </button>
+              </div>
+
+              {/* Password Suggestion Popover */}
+              <PasswordSuggestions
+                onSelect={(suggested) => {
+                  setPassword(suggested);
+                  setConfirmPassword(suggested);
+                }}
               />
+
+              {/* Strong Password Indications */}
+              {password.length > 0 && (
+                <div style={{ marginTop: 6, fontSize: '0.78rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 4,
+                    }}
+                  >
+                    <span style={{ color: C.muted }}>Password Strength:</span>
+                    <span style={{ fontWeight: 700, color: pwdStrength.color }}>
+                      {pwdStrength.label}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      height: 4,
+                      width: '100%',
+                      background: C.border,
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${(pwdScore / 5) * 100}%`,
+                        background: pwdStrength.color,
+                        transition: 'width 0.3s ease, background 0.3s ease',
+                      }}
+                    />
+                  </div>
+                  {mode === 'register' && (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '3px 8px',
+                        marginTop: 6,
+                        fontSize: '0.73rem',
+                      }}
+                    >
+                      <span style={{ color: pwdChecks.length ? C.green : C.muted }}>
+                        {pwdChecks.length ? '✓' : '○'} Min 8 characters
+                      </span>
+                      <span
+                        style={{
+                          color: pwdChecks.upper && pwdChecks.lower ? C.green : C.muted,
+                        }}
+                      >
+                        {pwdChecks.upper && pwdChecks.lower ? '✓' : '○'} Uppercase & Lowercase
+                      </span>
+                      <span style={{ color: pwdChecks.number ? C.green : C.muted }}>
+                        {pwdChecks.number ? '✓' : '○'} At least 1 number
+                      </span>
+                      <span style={{ color: pwdChecks.special ? C.green : C.muted }}>
+                        {pwdChecks.special ? '✓' : '○'} Special character
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </Field>
+
+            {mode === 'register' && (
+              <Field label="Confirm Password">
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    className="fp-input"
+                    style={{
+                      ...S.input,
+                      width: '100%',
+                      paddingRight: '2.5rem',
+                      borderColor:
+                        confirmPassword.length > 0 && confirmPassword !== password
+                          ? C.red
+                          : undefined,
+                    }}
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={toggleConfirmVisibility}
+                    title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    style={{
+                      position: 'absolute',
+                      right: 8,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: C.muted,
+                      padding: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <EyeIcon show={showConfirmPassword} blinking={blinkingConfirm} />
+                  </button>
+                </div>
+                {confirmPassword.length > 0 && confirmPassword !== password && (
+                  <div style={{ color: C.red, fontSize: '0.76rem', marginTop: 4 }}>
+                    Passwords do not match
+                  </div>
+                )}
+              </Field>
+            )}
+
             <Err error={error} />
-            <div style={{ display: 'grid', gap: 10, marginTop: '0.5rem' }}>
-              <Btn disabled={busy}>
+            <div style={{ display: 'grid', gap: 10, marginTop: '0.8rem' }}>
+              <Btn
+                disabled={
+                  busy ||
+                  (touchedEmail && !isEmailValid) ||
+                  (mode === 'register' && confirmPassword.length > 0 && confirmPassword !== password)
+                }
+              >
                 {busy ? 'One moment…' : mode === 'login' ? 'Sign in' : 'Create account'}
               </Btn>
-              <Btn kind="ghost" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
+              <Btn
+                kind="ghost"
+                onClick={() => {
+                  setError(null);
+                  setMode(mode === 'login' ? 'register' : 'login');
+                }}
+              >
                 {mode === 'login' ? 'New here? Create an account' : 'Already registered? Sign in'}
               </Btn>
             </div>
@@ -762,13 +973,69 @@ function Shell({
 export function App() {
   const [user, setUser] = useState<PublicUser | null>(null);
   const [company, setCompany] = useState<CompanyRow | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    api<{ accessToken: string; user: PublicUser }>('POST', '/api/v1/auth/refresh')
+      .then(async (data) => {
+        if (!active) return;
+        setAccessToken(data.accessToken);
+        setUser(data.user);
+        try {
+          const savedCompId = localStorage.getItem('fp-company-id');
+          const comps = await api<{ companies: CompanyRow[] }>('GET', '/api/v1/companies');
+          if (!active) return;
+          const match =
+            comps.companies.find((c) => c.id === savedCompId) ??
+            (comps.companies.length === 1 ? comps.companies[0] : null);
+          if (match) {
+            setCompanyId(match.id);
+            setCompany(match);
+          }
+        } catch {
+          /* ignore company fetch error */
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function logout() {
     void api('POST', '/api/v1/auth/logout', {}).catch(() => undefined);
+    try {
+      localStorage.removeItem('fp-company-id');
+    } catch {
+      /* ignore */
+    }
     setAccessToken(null);
     setCompanyId(null);
     setUser(null);
     setCompany(null);
+  }
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'var(--bg)',
+        }}
+      >
+        <div style={{ animation: 'fp-pulse 1.2s ease-in-out infinite' }}>
+          <Logo size="1.6rem" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -779,6 +1046,11 @@ export function App() {
           user={user}
           onPicked={(c) => {
             setCompanyId(c.id);
+            try {
+              localStorage.setItem('fp-company-id', c.id);
+            } catch {
+              /* ignore */
+            }
             setCompany(c);
           }}
         />

@@ -75,8 +75,19 @@ export function authRateLimit(req: Request, res: Response, next: NextFunction): 
       if (!result.allowed) return tooMany(res, result.retryAfterSec, limit, 'auth');
       next();
     })
-    .catch((err) => {
+    .catch(async (err) => {
       if (err instanceof AppError) return next(err);
+      if (getEnv().NODE_ENV === 'development') {
+        logger.warn({ err: String(err) }, 'auth limiter: redis down in dev — falling back to memory store');
+        try {
+          const result = await fallback.slidingWindow(key, AUTH_WINDOW_MS, limit);
+          setHeaders(res, limit, result.remaining, result.retryAfterSec);
+          if (!result.allowed) return tooMany(res, result.retryAfterSec, limit, 'auth');
+          return next();
+        } catch (memErr) {
+          return next(memErr);
+        }
+      }
       logger.error({ err: String(err) }, 'auth limiter: redis down — failing CLOSED');
       next(new AppError('SYS_SERVICE_UNAVAILABLE', 503, { reason: 'rate limiter unavailable' }));
     });

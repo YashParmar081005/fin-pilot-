@@ -68,6 +68,9 @@ const envSchema = z.object({
   RAZORPAY_PLAN_ID_ENTERPRISE: z.string().optional(),
   SENTRY_DSN: z.string().url().optional(),
 
+  // AI LLM API Keys
+  GEMINI_API_KEY: z.string().optional(),
+
   // Mail — Mailhog in dev; Resend/SES in production
   SMTP_HOST: z.string().default('localhost'),
   SMTP_PORT: z.coerce.number().int().positive().default(1025),
