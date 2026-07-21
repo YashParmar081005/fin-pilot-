@@ -467,44 +467,61 @@ function NavItem({
   icon,
   label,
   badge,
+  collapsed,
   onClick,
 }: {
   active: boolean;
   icon: string;
   label: string;
   badge?: number;
+  collapsed?: boolean;
   onClick: () => void;
 }) {
   return (
     <div
       onClick={onClick}
+      title={collapsed ? label : undefined}
       className={`fp-nav-item${active ? ' active' : ''}`}
       style={{
-        padding: '0.45rem 0.65rem',
+        padding: collapsed ? '0.45rem 0' : '0.45rem 0.65rem',
         borderRadius: 10,
         cursor: 'pointer',
         fontSize: '0.88rem',
         color: C.muted,
         display: 'flex',
         alignItems: 'center',
-        gap: 9,
+        justifyContent: collapsed ? 'center' : 'flex-start',
+        gap: collapsed ? 0 : 9,
         marginBottom: 2,
+        position: 'relative',
       }}
     >
-      <span style={{ fontSize: '0.9rem' }}>{icon}</span>
-      <span style={{ flex: 1 }}>{label}</span>
+      <span style={{ fontSize: collapsed ? '1.05rem' : '0.9rem' }}>{icon}</span>
+      {!collapsed && <span style={{ flex: 1, whiteSpace: 'nowrap' }}>{label}</span>}
       {badge !== undefined && badge > 0 && (
         <span
-          style={{
-            background: C.red,
-            color: '#fff',
-            borderRadius: 999,
-            fontSize: '0.66rem',
-            fontWeight: 700,
-            padding: '0.05rem 0.42rem',
-          }}
+          style={
+            collapsed
+              ? {
+                  position: 'absolute',
+                  top: 2,
+                  right: 6,
+                  background: C.red,
+                  borderRadius: 999,
+                  width: 8,
+                  height: 8,
+                }
+              : {
+                  background: C.red,
+                  color: '#fff',
+                  borderRadius: 999,
+                  fontSize: '0.66rem',
+                  fontWeight: 700,
+                  padding: '0.05rem 0.42rem',
+                }
+          }
         >
-          {badge}
+          {collapsed ? '' : badge}
         </span>
       )}
     </div>
@@ -526,6 +543,23 @@ function Shell({
   const [isAdmin, setIsAdmin] = useState(false);
   const [unread, setUnread] = useState(0);
   const [imp, setImp] = useState(getImpersonation());
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('fp-sidebar') === 'collapsed';
+    } catch {
+      return false;
+    }
+  });
+  function toggleSidebar() {
+    setCollapsed((c) => {
+      try {
+        localStorage.setItem('fp-sidebar', c ? 'open' : 'collapsed');
+      } catch {
+        /* ignore */
+      }
+      return !c;
+    });
+  }
 
   useEffect(() => onImpersonationChange(setImp), []);
   useEffect(() => {
@@ -566,75 +600,102 @@ function Shell({
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <aside
-        style={{
-          width: 226,
-          flexShrink: 0,
-          background: C.panel,
-          borderRight: `1px solid ${C.border}`,
-          padding: '1.1rem 0.8rem',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          overflowY: 'auto',
-        }}
-      >
-        <div style={{ paddingLeft: 8, marginBottom: '1.1rem' }}>
-          <Logo />
-        </div>
-        {NAV.map((section) => (
-          <div key={section.group}>
-            {section.group && (
-              <div
-                style={{
-                  color: C.muted,
-                  fontSize: '0.65rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.12em',
-                  fontWeight: 700,
-                  margin: '1rem 0 0.25rem',
-                  paddingLeft: 10,
-                }}
-              >
-                {section.group}
-              </div>
+      <div style={{ position: 'sticky', top: 0, height: '100vh', flexShrink: 0, zIndex: 20 }}>
+        <aside
+          className="fp-sidebar"
+          style={{
+            width: collapsed ? 64 : 226,
+            height: '100%',
+            background: C.panel,
+            borderRight: `1px solid ${C.border}`,
+            padding: collapsed ? '1.1rem 0.55rem' : '1.1rem 0.8rem',
+            overflowY: 'auto',
+          }}
+        >
+          <div
+            style={{
+              paddingLeft: collapsed ? 0 : 8,
+              marginBottom: '1.1rem',
+              textAlign: collapsed ? 'center' : 'left',
+            }}
+          >
+            {collapsed ? (
+              <span style={{ fontWeight: 800, fontSize: '1.1rem', color: C.accent }}>F</span>
+            ) : (
+              <Logo />
             )}
-            {section.items.map((item) => (
-              <NavItem
-                key={item.key}
-                active={route === item.key}
-                icon={item.icon}
-                label={item.label}
-                badge={item.key === 'notifications' ? unread : undefined}
-                onClick={() => go(item.key)}
-              />
-            ))}
           </div>
-        ))}
-        {isAdmin && (
-          <div>
-            <div
-              style={{
-                color: C.muted,
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                fontWeight: 700,
-                margin: '1rem 0 0.25rem',
-                paddingLeft: 10,
-              }}
-            >
-              Operator
+          {NAV.map((section) => (
+            <div key={section.group}>
+              {section.group &&
+                (collapsed ? (
+                  <div style={{ borderTop: `1px solid ${C.border}`, margin: '0.7rem 0.4rem' }} />
+                ) : (
+                  <div
+                    style={{
+                      color: C.muted,
+                      fontSize: '0.65rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.12em',
+                      fontWeight: 700,
+                      margin: '1rem 0 0.25rem',
+                      paddingLeft: 10,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {section.group}
+                  </div>
+                ))}
+              {section.items.map((item) => (
+                <NavItem
+                  key={item.key}
+                  active={route === item.key}
+                  icon={item.icon}
+                  label={item.label}
+                  badge={item.key === 'notifications' ? unread : undefined}
+                  collapsed={collapsed}
+                  onClick={() => go(item.key)}
+                />
+              ))}
             </div>
-            <NavItem
-              active={route === 'admin'}
-              icon="🛠️"
-              label="Admin console"
-              onClick={() => go('admin')}
-            />
-          </div>
-        )}
-      </aside>
+          ))}
+          {isAdmin && (
+            <div>
+              {collapsed ? (
+                <div style={{ borderTop: `1px solid ${C.border}`, margin: '0.7rem 0.4rem' }} />
+              ) : (
+                <div
+                  style={{
+                    color: C.muted,
+                    fontSize: '0.65rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.12em',
+                    fontWeight: 700,
+                    margin: '1rem 0 0.25rem',
+                    paddingLeft: 10,
+                  }}
+                >
+                  Operator
+                </div>
+              )}
+              <NavItem
+                active={route === 'admin'}
+                icon="🛠️"
+                label="Admin console"
+                collapsed={collapsed}
+                onClick={() => go('admin')}
+              />
+            </div>
+          )}
+        </aside>
+        <button
+          className="fp-collapse"
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          onClick={toggleSidebar}
+        >
+          {collapsed ? '▶' : '◀'}
+        </button>
+      </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         {imp && (

@@ -72,6 +72,38 @@ body {
   color: var(--on-accent);
 }
 
+/* ── scrollbars — slim, themed with the surface they live on ───────────── */
+
+* {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* ── animations ─────────────────────────────────────────────────────────── */
 
 @keyframes fp-fade-up {
@@ -256,4 +288,37 @@ body {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lift);
   background: var(--accent-soft);
+}
+
+/* collapsible sidebar */
+.fp-sidebar {
+  transition: width 0.25s ease, background 0.35s ease, border-color 0.35s ease;
+  overflow-x: hidden;
+}
+
+.fp-collapse {
+  position: absolute;
+  top: 21px;
+  right: -13px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  z-index: 30;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.fp-collapse:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.12);
 }
