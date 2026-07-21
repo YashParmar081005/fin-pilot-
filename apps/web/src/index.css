@@ -4,6 +4,14 @@
  * to var(--x) only, so the [data-theme] attribute swaps the whole app.
  */
 
+/* Chart marks — validated by the dataviz six-checks script against BOTH
+   surfaces (#fff light / #211c17 dark): L in band, chroma, CVD 7.3 floor-band
+   (legal: charts add direction + direct labels), normal ΔE 26.8, contrast ≥3:1. */
+:root {
+  --chart-1: #e85d0b; /* outflow / primary series */
+  --chart-2: #2f8f5b; /* inflow / secondary series */
+}
+
 :root,
 :root[data-theme='light'] {
   --bg: #fbf7f1;
@@ -227,4 +235,25 @@ body {
 
 .fp-msg {
   animation: fp-fade-up 0.25s ease both;
+}
+
+.fp-tile {
+  transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: default;
+}
+
+.fp-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+
+.fp-quick {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.fp-quick:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+  background: var(--accent-soft);
 }
