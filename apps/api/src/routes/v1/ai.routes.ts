@@ -63,6 +63,25 @@ aiRoutes.post(
   }),
 );
 
+/** The proposal inbox the UI renders (I10: human sees the diff, then confirms). */
+aiRoutes.get(
+  '/proposals',
+  asyncHandler(async (_req: Request, res: Response) => {
+    const proposals = await AiProposal.find({}).sort({ createdAt: -1 }).limit(20).lean();
+    ok(res, {
+      proposals: proposals.map((p) => ({
+        id: String(p._id),
+        type: p.type,
+        status: p.status,
+        payload: p.payload,
+        preview: p.preview,
+        expiresAt: p.expiresAt,
+        createdAt: p.createdAt,
+      })),
+    });
+  }),
+);
+
 /**
  * I10 confirm: re-validates the PAYLOAD through the same schemas and replays
  * it through the SAME services a human uses. The stored preview is ignored —
