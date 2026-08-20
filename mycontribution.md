@@ -97,3 +97,21 @@ This document tracks all features, bug fixes, infrastructure setups, and UI enha
   - **Root Cause**: The AI gateway loop executes multiple chat turns. When Gemini fails (due to an invalid API key), it was attempting to reconnect on *every* turn within the same request, hitting the 5s timeout 2-3 times per prompt, causing a 10-15s total delay before the final response appeared on the page.
   - **Fix**: Implemented failure caching in `[provider.ts](file:///c:/Users/Milan%20Gagiya/Documents/PROJECT%20RESUME/fin-pilot-/apps/api/src/ai/provider.ts)`. Added `geminiDown` flag and `downSince` timestamp. If Gemini fails, it caches the failure for 60 seconds. Subsequent calls during that period immediately short-circuit to the Smart Financial Engine without making a network request or waiting for a timeout.
   - **Result**: The first prompt after server boot takes ~5s (one timeout). All subsequent prompts respond instantly (< 1s) on the frontend.
+
+---
+
+### Task 9: Google Fonts Inter Integration
+- **Date**: 2026-07-21
+- **Scope**: Integrated the Inter Google Font into the web application typography system.
+- **Key Changes**:
+  - Added the **Inter** Google Font stylesheet link (weights 400, 500, 600, 700, 800) in [`apps/web/index.html`](file:///c:/Users/Milan%20Gagiya/Documents/PROJECT%20RESUME/fin-pilot-/apps/web/index.html).
+  - Added CSS `@import` and configured `'Inter'` as the primary font-family in [`apps/web/src/index.css`](file:///c:/Users/Milan%20Gagiya/Documents/PROJECT%20RESUME/fin-pilot-/apps/web/src/index.css).
+
+---
+
+### Task 10: Installed Airbnb Design System & Web Design Guidelines Skill
+- **Date**: 2026-07-21
+- **Scope**: Installed project design system reference (`DESIGN.md`) and agent design skill (`web-design-guidelines`).
+- **Key Changes**:
+  - Installed `DESIGN.md` inspired by Airbnb design principles using `npx getdesign@latest add airbnb`.
+  - Installed `web-design-guidelines` skill from `vercel-labs/agent-skills` into `.agents/skills/web-design-guidelines` using `npx skills add`.

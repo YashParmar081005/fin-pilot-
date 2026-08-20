@@ -30,6 +30,28 @@ import { NotificationsPage } from './features/platform/NotificationsPage';
 import { MembersPage } from './features/platform/MembersPage';
 import { BillingPage } from './features/platform/BillingPage';
 import { AdminPage } from './features/platform/AdminPage';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+  Invoice01Icon,
+  AiBrain01Icon,
+  BankIcon,
+  Camera01Icon,
+  Analytics01Icon,
+  HierarchyIcon,
+  Book01Icon,
+  BalanceScaleIcon,
+  UserGroupIcon,
+  FileDownloadIcon,
+  MoneySend01Icon,
+  ShieldCheck,
+  BarChartIcon,
+  AiMagicIcon,
+  Notification01Icon,
+  CreditCardIcon,
+  Wrench01Icon,
+  Logout01Icon,
+  ArrowReloadHorizontalIcon,
+} from '@hugeicons/core-free-icons';
 
 interface PublicUser {
   id: string;
@@ -42,16 +64,26 @@ interface CompanyRow {
   role: { key: string; name: string };
 }
 
-function Logo({ size = '1.15rem' }: { size?: string }) {
+function Logo({ size = '1.35rem' }: { size?: string }) {
   return (
-    <span style={{ fontWeight: 800, fontSize: size, letterSpacing: '-0.02em' }}>
+    <span
+      style={{
+        fontSize: size,
+        fontFamily: "'Space Grotesk', sans-serif",
+        fontWeight: 500,
+        letterSpacing: '-0.03em',
+        color: 'var(--text)',
+        display: 'inline-flex',
+        alignItems: 'center',
+      }}
+    >
       Fin
       <span
         style={{
-          background: `linear-gradient(135deg, ${C.accent}, ${C.accent2})`,
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          color: 'transparent',
+          fontFamily: "'Google Sans', sans-serif",
+          fontWeight: 700,
+          color: '#ff4404',
+          marginLeft: '1px',
         }}
       >
         Pilot
@@ -66,12 +98,12 @@ import { evaluatePassword, isValidEmail } from './utils/passwordUtils';
 
 // ── auth page ───────────────────────────────────────────────────────────────
 
-const SELLING_POINTS = [
-  ['🧾', 'GST-compliant invoicing with gapless numbering and e-invoice IRN'],
-  ['🤖', 'An AI copilot that narrates numbers the engine computes — never invents one'],
-  ['🏦', 'Bank reconciliation with auto-suggested matches you confirm'],
-  ['📸', 'Photograph a vendor bill — OCR drafts the entry, you approve it'],
-] as const;
+const SELLING_POINTS: Array<[React.ReactNode, string]> = [
+  [<HugeiconsIcon key="1" icon={Invoice01Icon} size={20} />, 'GST-compliant invoicing with gapless numbering and e-invoice IRN'],
+  [<HugeiconsIcon key="2" icon={AiBrain01Icon} size={20} />, 'An AI copilot that narrates numbers the engine computes — never invents one'],
+  [<HugeiconsIcon key="3" icon={BankIcon} size={20} />, 'Bank reconciliation with auto-suggested matches you confirm'],
+  [<HugeiconsIcon key="4" icon={Camera01Icon} size={20} />, 'Photograph a vendor bill — OCR drafts the entry, you approve it'],
+];
 
 function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -142,36 +174,92 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* brand hero */}
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Airbnb Cereal VF', Circular, -apple-system, sans-serif" }}>
+      <style>{`
+        .airbnb-input {
+          width: 100%;
+          height: 56px;
+          padding: 14px 12px;
+          border-radius: 8px;
+          border: 1px solid var(--border);
+          background-color: var(--panel);
+          color: var(--text);
+          font-size: 16px;
+          outline: none;
+          font-family: 'Airbnb Cereal VF', Circular, -apple-system, sans-serif;
+          transition: border-color 0.2s, border-width 0.2s;
+        }
+        .airbnb-input:focus-visible {
+          border: 2px solid var(--accent);
+          padding: 13px 11px; /* offset the 1px border increase to prevent jumping */
+        }
+        .airbnb-input.error {
+          border-color: var(--red);
+        }
+        .airbnb-input.error:focus-visible {
+          border: 2px solid var(--red);
+          padding: 13px 11px;
+        }
+        .airbnb-btn {
+          width: 100%;
+          height: 48px;
+          padding: 14px 24px;
+          border-radius: 8px;
+          background-color: var(--accent);
+          color: #ffffff;
+          font-size: 16px;
+          font-weight: 500;
+          border: none;
+          cursor: pointer;
+          font-family: 'Airbnb Cereal VF', Circular, -apple-system, sans-serif;
+          transition: background-color 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .airbnb-btn:hover:not(:disabled) {
+          background-color: var(--accent-2);
+        }
+        .airbnb-btn:focus-visible {
+          outline: 2px solid var(--text);
+          outline-offset: 2px;
+        }
+        .airbnb-btn:disabled {
+          background-color: var(--accent-soft);
+          color: var(--muted);
+          cursor: not-allowed;
+        }
+        .airbnb-btn-ghost {
+          background-color: transparent;
+          color: var(--text);
+          text-decoration: underline;
+          height: auto;
+          padding: 8px;
+        }
+        .airbnb-btn-ghost:hover:not(:disabled) {
+          background-color: transparent;
+          color: var(--accent);
+        }
+      `}</style>
+      
+      {/* brand hero - photography led */}
       <div
         style={{
           flex: '1 1 46%',
           position: 'relative',
           overflow: 'hidden',
-          background: `linear-gradient(150deg, #e85d0b 0%, #c6482b 55%, #1b1712 130%)`,
-          color: '#fff',
+          backgroundColor: 'var(--panel-2)',
+          color: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           padding: '4rem 3.2rem',
+          backgroundImage: 'url("https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       >
-        <div
-          className="fp-blob"
-          style={{ width: 380, height: 380, background: '#f59e1b', top: -90, right: -70 }}
-        />
-        <div
-          className="fp-blob"
-          style={{
-            width: 300,
-            height: 300,
-            background: '#fbbf3b',
-            bottom: -60,
-            left: -80,
-            animationDelay: '-7s',
-          }}
-        />
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)' }} />
         <div
           style={{ position: 'relative', maxWidth: 480, animation: 'fp-fade-up 0.5s ease both' }}
         >
@@ -187,17 +275,18 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
           </div>
           <h1
             style={{
-              fontSize: '1.65rem',
-              lineHeight: 1.25,
+              fontSize: '28px',
+              fontWeight: 700,
+              lineHeight: 1.43,
               margin: '0 0 1rem',
-              letterSpacing: '-0.02em',
+              letterSpacing: '0',
             }}
           >
             Your books, on autopilot.
             <br />
             Your numbers, guaranteed real.
           </h1>
-          <p style={{ opacity: 0.9, lineHeight: 1.6, marginBottom: '2rem' }}>
+          <p style={{ opacity: 0.9, lineHeight: 1.5, fontSize: '16px', marginBottom: '2rem' }}>
             Cloud accounting for Indian SMEs — three days of GST reconciliation a month becomes one
             click, and "how much cash will I have in two weeks" finally has an answer.
           </p>
@@ -208,18 +297,18 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                 display: 'flex',
                 gap: 12,
                 alignItems: 'flex-start',
-                marginBottom: '0.9rem',
+                marginBottom: '16px',
                 animation: `fp-fade-up 0.5s ease ${0.15 + i * 0.1}s both`,
               }}
             >
-              <span style={{ fontSize: '1.15rem' }}>{icon}</span>
-              <span style={{ fontSize: '0.92rem', opacity: 0.95, lineHeight: 1.45 }}>{text}</span>
+              <span style={{ fontSize: '20px' }}>{icon}</span>
+              <span style={{ fontSize: '16px', opacity: 0.95, lineHeight: 1.43 }}>{text}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* form panel */}
+      {/* form panel - clean canvas */}
       <div
         style={{
           flex: '1 1 54%',
@@ -227,44 +316,55 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '2rem',
+          backgroundColor: 'var(--bg)',
           position: 'relative',
         }}
       >
-        <div style={{ position: 'absolute', top: 18, right: 18 }}>
+        <div style={{ position: 'absolute', top: 24, right: 24 }}>
           <ThemeToggle />
         </div>
-        <div className="fp-card" style={{ width: 420, padding: '2rem 2.2rem' }}>
-          <Logo size="1.4rem" />
-          <h2 style={{ margin: '1.1rem 0 0.25rem', fontSize: '1.3rem', letterSpacing: '-0.02em' }}>
+        <div style={{ width: 420, padding: '24px' }}>
+          <div style={{ marginBottom: 32 }}>
+            <Logo size="1.4rem" />
+          </div>
+          <h2 style={{ margin: '0 0 8px', fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '0' }}>
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h2>
-          <p style={{ color: C.muted, fontSize: '0.88rem', marginTop: 0 }}>
+          <p style={{ color: 'var(--muted)', fontSize: '16px', marginTop: 0, marginBottom: 32, lineHeight: 1.5 }}>
             {mode === 'login'
               ? 'Sign in to your books.'
               : 'Free plan — one company, 50 invoices a month, AI included.'}
           </p>
+          
           <form onSubmit={submit}>
             {mode === 'register' && (
-              <Field label="Your name">
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+                  Your name
+                </label>
                 <input
-                  className="fp-input"
-                  style={S.input}
+                  className="airbnb-input"
+                  name="name"
+                  autoComplete="name"
+                  spellCheck={false}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
                   required
                 />
-              </Field>
+              </div>
             )}
 
-            <Field label="Email">
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+                Email
+              </label>
               <input
-                className="fp-input"
-                style={{
-                  ...S.input,
-                  borderColor: touchedEmail && !isEmailValid ? C.red : undefined,
-                }}
+                className={`airbnb-input ${touchedEmail && !isEmailValid ? 'error' : ''}`}
+                name="email"
                 type="email"
+                autoComplete="username"
+                spellCheck={false}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onBlur={() => setTouchedEmail(true)}
@@ -272,18 +372,23 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                 required
               />
               {touchedEmail && !isEmailValid && (
-                <div style={{ color: C.red, fontSize: '0.76rem', marginTop: 4 }}>
+                <div style={{ color: 'var(--red)', fontSize: '13px', marginTop: 6, fontWeight: 500 }}>
                   Please enter a valid email address
                 </div>
               )}
-            </Field>
+            </div>
 
-            <Field label="Password">
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+                Password
+              </label>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <input
-                  className="fp-input"
-                  style={{ ...S.input, width: '100%', paddingRight: '2.5rem' }}
+                  className="airbnb-input"
+                  name="password"
+                  style={{ paddingRight: '48px' }}
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -294,24 +399,25 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                   type="button"
                   onClick={togglePassVisibility}
                   title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   style={{
                     position: 'absolute',
-                    right: 8,
+                    right: 12,
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: C.muted,
+                    color: 'var(--muted)',
                     padding: 4,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    borderRadius: '50%',
                   }}
                 >
                   <EyeIcon show={showPassword} blinking={blinkingPass} />
                 </button>
               </div>
 
-              {/* Password Suggestion Popover */}
               <PasswordSuggestions
                 onSelect={(suggested) => {
                   setPassword(suggested);
@@ -319,19 +425,18 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                 }}
               />
 
-              {/* Strong Password Indications */}
               {password.length > 0 && (
-                <div style={{ marginTop: 6, fontSize: '0.78rem' }}>
+                <div style={{ marginTop: 8, fontSize: '14px' }}>
                   <div
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      marginBottom: 4,
+                      marginBottom: 6,
                     }}
                   >
-                    <span style={{ color: C.muted }}>Password Strength:</span>
-                    <span style={{ fontWeight: 700, color: pwdStrength.color }}>
+                    <span style={{ color: 'var(--muted)' }}>Password Strength:</span>
+                    <span style={{ fontWeight: 600, color: pwdStrength.color }}>
                       {pwdStrength.label}
                     </span>
                   </div>
@@ -339,7 +444,7 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                     style={{
                       height: 4,
                       width: '100%',
-                      background: C.border,
+                      background: 'var(--panel-2)',
                       borderRadius: 2,
                       overflow: 'hidden',
                     }}
@@ -358,48 +463,45 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                       style={{
                         display: 'grid',
                         gridTemplateColumns: '1fr 1fr',
-                        gap: '3px 8px',
-                        marginTop: 6,
-                        fontSize: '0.73rem',
+                        gap: '6px 12px',
+                        marginTop: 10,
+                        fontSize: '13px',
                       }}
                     >
-                      <span style={{ color: pwdChecks.length ? C.green : C.muted }}>
+                      <span style={{ color: pwdChecks.length ? 'var(--green)' : 'var(--muted)' }}>
                         {pwdChecks.length ? '✓' : '○'} Min 8 characters
                       </span>
                       <span
                         style={{
-                          color: pwdChecks.upper && pwdChecks.lower ? C.green : C.muted,
+                          color: pwdChecks.upper && pwdChecks.lower ? 'var(--green)' : 'var(--muted)',
                         }}
                       >
                         {pwdChecks.upper && pwdChecks.lower ? '✓' : '○'} Uppercase & Lowercase
                       </span>
-                      <span style={{ color: pwdChecks.number ? C.green : C.muted }}>
+                      <span style={{ color: pwdChecks.number ? 'var(--green)' : 'var(--muted)' }}>
                         {pwdChecks.number ? '✓' : '○'} At least 1 number
                       </span>
-                      <span style={{ color: pwdChecks.special ? C.green : C.muted }}>
+                      <span style={{ color: pwdChecks.special ? 'var(--green)' : 'var(--muted)' }}>
                         {pwdChecks.special ? '✓' : '○'} Special character
                       </span>
                     </div>
                   )}
                 </div>
               )}
-            </Field>
+            </div>
 
             {mode === 'register' && (
-              <Field label="Confirm Password">
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+                  Confirm Password
+                </label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input
-                    className="fp-input"
-                    style={{
-                      ...S.input,
-                      width: '100%',
-                      paddingRight: '2.5rem',
-                      borderColor:
-                        confirmPassword.length > 0 && confirmPassword !== password
-                          ? C.red
-                          : undefined,
-                    }}
+                    className={`airbnb-input ${confirmPassword.length > 0 && confirmPassword !== password ? 'error' : ''}`}
+                    name="confirmPassword"
+                    style={{ paddingRight: '48px' }}
                     type={showConfirmPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
@@ -409,33 +511,38 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                     type="button"
                     onClick={toggleConfirmVisibility}
                     title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                     style={{
                       position: 'absolute',
-                      right: 8,
+                      right: 12,
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
-                      color: C.muted,
+                      color: 'var(--muted)',
                       padding: 4,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      borderRadius: '50%',
                     }}
                   >
                     <EyeIcon show={showConfirmPassword} blinking={blinkingConfirm} />
                   </button>
                 </div>
                 {confirmPassword.length > 0 && confirmPassword !== password && (
-                  <div style={{ color: C.red, fontSize: '0.76rem', marginTop: 4 }}>
+                  <div style={{ color: 'var(--red)', fontSize: '13px', marginTop: 6, fontWeight: 500 }}>
                     Passwords do not match
                   </div>
                 )}
-              </Field>
+              </div>
             )}
 
             <Err error={error} />
-            <div style={{ display: 'grid', gap: 10, marginTop: '0.8rem' }}>
-              <Btn
+            
+            <div style={{ display: 'grid', gap: 16, marginTop: '32px' }}>
+              <button
+                className="airbnb-btn"
+                type="submit"
                 disabled={
                   busy ||
                   (touchedEmail && !isEmailValid) ||
@@ -443,16 +550,17 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                 }
               >
                 {busy ? 'One moment…' : mode === 'login' ? 'Sign in' : 'Create account'}
-              </Btn>
-              <Btn
-                kind="ghost"
+              </button>
+              <button
+                type="button"
+                className="airbnb-btn airbnb-btn-ghost"
                 onClick={() => {
                   setError(null);
                   setMode(mode === 'login' ? 'register' : 'login');
                 }}
               >
                 {mode === 'login' ? 'New here? Create an account' : 'Already registered? Sign in'}
-              </Btn>
+              </button>
             </div>
           </form>
         </div>
@@ -615,41 +723,41 @@ function JournalPageWrap() {
 
 // ── navigation ──────────────────────────────────────────────────────────────
 
-const NAV: Array<{ group: string; items: Array<{ key: string; label: string; icon: string }> }> = [
-  { group: '', items: [{ key: 'dashboard', label: 'Dashboard', icon: '📊' }] },
+const NAV: Array<{ group: string; items: Array<{ key: string; label: string; icon: React.ReactNode }> }> = [
+  { group: '', items: [{ key: 'dashboard', label: 'Dashboard', icon: <HugeiconsIcon icon={Analytics01Icon} size={28} /> }] },
   {
     group: 'Core ledger',
     items: [
-      { key: 'accounts', label: 'Chart of accounts', icon: '🌳' },
-      { key: 'journal', label: 'Journal', icon: '📖' },
-      { key: 'trial-balance', label: 'Trial balance', icon: '⚖️' },
-      { key: 'parties', label: 'Parties & items', icon: '👥' },
+      { key: 'accounts', label: 'Chart of accounts', icon: <HugeiconsIcon icon={HierarchyIcon} size={28} /> },
+      { key: 'journal', label: 'Journal', icon: <HugeiconsIcon icon={Book01Icon} size={28} /> },
+      { key: 'trial-balance', label: 'Trial balance', icon: <HugeiconsIcon icon={BalanceScaleIcon} size={28} /> },
+      { key: 'parties', label: 'Parties & items', icon: <HugeiconsIcon icon={UserGroupIcon} size={28} /> },
     ],
   },
-  { group: 'Sales', items: [{ key: 'invoices', label: 'Invoicing', icon: '🧾' }] },
+  { group: 'Sales', items: [{ key: 'invoices', label: 'Invoicing', icon: <HugeiconsIcon icon={Invoice01Icon} size={28} /> }] },
   {
     group: 'Purchases',
     items: [
-      { key: 'bills', label: 'Bills & expenses', icon: '📥' },
-      { key: 'documents', label: 'Scan a bill (OCR)', icon: '📸' },
+      { key: 'bills', label: 'Bills & expenses', icon: <HugeiconsIcon icon={FileDownloadIcon} size={28} /> },
+      { key: 'documents', label: 'Scan a bill (OCR)', icon: <HugeiconsIcon icon={Camera01Icon} size={28} /> },
     ],
   },
   {
     group: 'Money',
     items: [
-      { key: 'payments', label: 'Payments', icon: '💸' },
-      { key: 'banking', label: 'Banking & reco', icon: '🏦' },
+      { key: 'payments', label: 'Payments', icon: <HugeiconsIcon icon={MoneySend01Icon} size={28} /> },
+      { key: 'banking', label: 'Banking & reco', icon: <HugeiconsIcon icon={BankIcon} size={28} /> },
     ],
   },
-  { group: 'Compliance', items: [{ key: 'gst', label: 'GST & IMS', icon: '🛡️' }] },
-  { group: 'Reports', items: [{ key: 'reports', label: 'All reports', icon: '📈' }] },
-  { group: 'AI', items: [{ key: 'copilot', label: 'Copilot', icon: '✨' }] },
+  { group: 'Compliance', items: [{ key: 'gst', label: 'GST & IMS', icon: <HugeiconsIcon icon={ShieldCheck} size={28} /> }] },
+  { group: 'Reports', items: [{ key: 'reports', label: 'All reports', icon: <HugeiconsIcon icon={BarChartIcon} size={28} /> }] },
+  { group: 'AI', items: [{ key: 'copilot', label: 'Copilot', icon: <HugeiconsIcon icon={AiMagicIcon} size={28} /> }] },
   {
     group: 'Platform',
     items: [
-      { key: 'notifications', label: 'Notifications', icon: '🔔' },
-      { key: 'team', label: 'Team', icon: '🤝' },
-      { key: 'billing', label: 'Billing', icon: '💳' },
+      { key: 'notifications', label: 'Notifications', icon: <HugeiconsIcon icon={Notification01Icon} size={28} /> },
+      { key: 'team', label: 'Team', icon: <HugeiconsIcon icon={UserGroupIcon} size={28} /> },
+      { key: 'billing', label: 'Billing', icon: <HugeiconsIcon icon={CreditCardIcon} size={28} /> },
     ],
   },
 ];
@@ -682,7 +790,7 @@ function NavItem({
   onClick,
 }: {
   active: boolean;
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   badge?: number;
   collapsed?: boolean;
@@ -694,29 +802,33 @@ function NavItem({
       title={collapsed ? label : undefined}
       className={`fp-nav-item${active ? ' active' : ''}`}
       style={{
-        padding: collapsed ? '0.45rem 0' : '0.45rem 0.65rem',
-        borderRadius: 10,
+        padding: collapsed ? '0.65rem 0' : '0.6rem 0.85rem',
+        borderRadius: 12,
         cursor: 'pointer',
-        fontSize: '0.88rem',
-        color: C.muted,
+        fontSize: '0.94rem',
+        fontWeight: active ? 700 : 500,
+        color: active ? C.accent : C.text,
         display: 'flex',
         alignItems: 'center',
         justifyContent: collapsed ? 'center' : 'flex-start',
-        gap: collapsed ? 0 : 9,
-        marginBottom: 2,
+        gap: collapsed ? 0 : 12,
+        marginBottom: 4,
         position: 'relative',
+        transition: 'all 0.18s ease',
       }}
     >
-      <span style={{ fontSize: collapsed ? '1.05rem' : '0.9rem' }}>{icon}</span>
-      {!collapsed && <span style={{ flex: 1, whiteSpace: 'nowrap' }}>{label}</span>}
+      <span style={{ fontSize: collapsed ? '1.25rem' : '1.1rem', display: 'inline-flex', alignItems: 'center', color: active ? C.accent : C.muted }}>
+        {icon}
+      </span>
+      {!collapsed && <span style={{ flex: 1, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{label}</span>}
       {badge !== undefined && badge > 0 && (
         <span
           style={
             collapsed
               ? {
                   position: 'absolute',
-                  top: 2,
-                  right: 6,
+                  top: 4,
+                  right: 8,
                   background: C.red,
                   borderRadius: 999,
                   width: 8,
@@ -726,9 +838,9 @@ function NavItem({
                   background: C.red,
                   color: '#fff',
                   borderRadius: 999,
-                  fontSize: '0.66rem',
+                  fontSize: '0.72rem',
                   fontWeight: 700,
-                  padding: '0.05rem 0.42rem',
+                  padding: '0.1rem 0.5rem',
                 }
           }
         >
@@ -815,89 +927,103 @@ function Shell({
         <aside
           className="fp-sidebar"
           style={{
-            width: collapsed ? 64 : 226,
-            height: '100%',
+            width: collapsed ? 90 : 335,
+            height: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
             background: C.panel,
             borderRight: `1px solid ${C.border}`,
-            padding: collapsed ? '1.1rem 0.55rem' : '1.1rem 0.8rem',
-            overflowY: 'auto',
+            position: 'relative',
           }}
         >
+          {/* Header Logo section */}
           <div
             style={{
-              paddingLeft: collapsed ? 0 : 8,
-              marginBottom: '1.1rem',
-              textAlign: collapsed ? 'center' : 'left',
+              padding: collapsed ? '1.25rem 0.5rem 1rem' : '1.25rem 1.1rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: collapsed ? 'center' : 'space-between',
+              borderBottom: `1px solid ${C.border}`,
             }}
           >
             {collapsed ? (
-              <span style={{ fontWeight: 800, fontSize: '1.1rem', color: C.accent }}>F</span>
+              <span style={{ fontWeight: 800, fontSize: '1.3rem', color: C.accent }}>F</span>
             ) : (
-              <Logo />
+              <Logo size="1.35rem" />
             )}
           </div>
-          {NAV.map((section) => (
-            <div key={section.group}>
-              {section.group &&
-                (collapsed ? (
-                  <div style={{ borderTop: `1px solid ${C.border}`, margin: '0.7rem 0.4rem' }} />
+
+          {/* Vertically Scrollable Nav Area */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: collapsed ? '1rem 0.5rem' : '1rem 0.85rem',
+            }}
+          >
+            {NAV.map((section) => (
+              <div key={section.group}>
+                {section.group &&
+                  (collapsed ? (
+                    <div style={{ borderTop: `1px solid ${C.border}`, margin: '0.8rem 0.4rem' }} />
+                  ) : (
+                    <div
+                      style={{
+                        color: C.muted,
+                        fontSize: '0.72rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        fontWeight: 700,
+                        margin: '1.2rem 0 0.4rem',
+                        paddingLeft: 10,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {section.group}
+                    </div>
+                  ))}
+                {section.items.map((item) => (
+                  <NavItem
+                    key={item.key}
+                    active={route === item.key}
+                    icon={item.icon}
+                    label={item.label}
+                    badge={item.key === 'notifications' ? unread : undefined}
+                    collapsed={collapsed}
+                    onClick={() => go(item.key)}
+                  />
+                ))}
+              </div>
+            ))}
+            {isAdmin && (
+              <div>
+                {collapsed ? (
+                  <div style={{ borderTop: `1px solid ${C.border}`, margin: '0.8rem 0.4rem' }} />
                 ) : (
                   <div
                     style={{
                       color: C.muted,
-                      fontSize: '0.65rem',
+                      fontSize: '0.72rem',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.12em',
+                      letterSpacing: '0.08em',
                       fontWeight: 700,
-                      margin: '1rem 0 0.25rem',
+                      margin: '1.2rem 0 0.4rem',
                       paddingLeft: 10,
-                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {section.group}
+                    Operator
                   </div>
-                ))}
-              {section.items.map((item) => (
+                )}
                 <NavItem
-                  key={item.key}
-                  active={route === item.key}
-                  icon={item.icon}
-                  label={item.label}
-                  badge={item.key === 'notifications' ? unread : undefined}
+                  active={route === 'admin'}
+                  icon={<HugeiconsIcon icon={Wrench01Icon} size={28} />}
+                  label="Admin console"
                   collapsed={collapsed}
-                  onClick={() => go(item.key)}
+                  onClick={() => go('admin')}
                 />
-              ))}
-            </div>
-          ))}
-          {isAdmin && (
-            <div>
-              {collapsed ? (
-                <div style={{ borderTop: `1px solid ${C.border}`, margin: '0.7rem 0.4rem' }} />
-              ) : (
-                <div
-                  style={{
-                    color: C.muted,
-                    fontSize: '0.65rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                    fontWeight: 700,
-                    margin: '1rem 0 0.25rem',
-                    paddingLeft: 10,
-                  }}
-                >
-                  Operator
-                </div>
-              )}
-              <NavItem
-                active={route === 'admin'}
-                icon="🛠️"
-                label="Admin console"
-                collapsed={collapsed}
-                onClick={() => go('admin')}
-              />
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </aside>
         <button
           className="fp-collapse"
@@ -930,7 +1056,7 @@ function Shell({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '0.75rem 1.5rem',
+            padding: '1rem 2.5rem',
             borderBottom: `1px solid ${C.border}`,
             background: C.panel,
             position: 'sticky',
@@ -939,27 +1065,33 @@ function Shell({
           }}
         >
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1.02rem', letterSpacing: '-0.01em' }}>
+            <div style={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '-0.01em' }}>
               {TITLES[route] ?? 'Dashboard'}
             </div>
-            <div style={{ color: C.muted, fontSize: '0.75rem' }}>{company.legalName}</div>
+            <div style={{ color: C.muted, fontSize: '0.8rem' }}>{company.legalName}</div>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ color: C.muted, fontSize: '0.8rem' }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <span style={{ color: C.muted, fontSize: '0.85rem' }}>
               {user.name} · {company.role.name}
             </span>
             <ThemeToggle />
             <Btn small kind="ghost" onClick={onSwitch}>
-              Switch company
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <HugeiconsIcon icon={ArrowReloadHorizontalIcon} size={19} />
+                Switch company
+              </span>
             </Btn>
-            <Btn small kind="ghost" onClick={onLogout}>
-              Sign out
+            <Btn small kind="primary" onClick={onLogout}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <HugeiconsIcon icon={Logout01Icon} size={19} />
+                Sign out
+              </span>
             </Btn>
           </div>
         </header>
         <main
           key={route}
-          style={{ padding: '1.3rem 1.5rem', maxWidth: 1120, animation: 'fp-fade-in 0.25s ease' }}
+          style={{ padding: '1.75rem 2.5rem', width: '100%', maxWidth: '100%', minWidth: 0, animation: 'fp-fade-in 0.25s ease' }}
         >
           {PAGES[route] ?? <DashboardPage />}
         </main>

@@ -73,9 +73,9 @@ export function ThemeToggle() {
         color: C.text,
         border: `1px solid ${C.border}`,
         borderRadius: 999,
-        width: 34,
-        height: 34,
-        fontSize: '0.95rem',
+        width: 42,
+        height: 42,
+        fontSize: '1.15rem',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -93,15 +93,17 @@ export const S: Record<string, CSSProperties> = {
     display: 'block',
     width: '100%',
     boxSizing: 'border-box',
-    margin: '0.25rem 0 0.75rem',
-    padding: '0.55rem 0.75rem',
-    borderRadius: 10,
+    margin: 0,
+    height: 52,
+    padding: '0 1rem',
+    borderRadius: 8,
     border: `1px solid ${C.border}`,
     background: C.panel,
     color: C.text,
-    fontSize: '0.9rem',
+    fontSize: '0.95rem',
+    fontFamily: 'inherit',
   },
-  label: { fontSize: '0.78rem', color: C.muted, fontWeight: 600 },
+  label: { fontSize: '0.8rem', color: C.text, fontWeight: 500 },
 };
 
 export function Btn({
@@ -121,23 +123,29 @@ export function Btn({
 }) {
   const styles: CSSProperties =
     kind === 'primary'
-      ? {} // gradient lives in the class
+      ? { background: C.accent, color: C.accentText, borderRadius: 8, fontWeight: 500 }
       : kind === 'danger'
-        ? { background: C.red, color: '#fff' }
+        ? { background: C.red, color: '#fff', borderRadius: 8, fontWeight: 500 }
         : kind === 'success'
-          ? { background: C.green, color: '#fff' }
-          : { background: C.panel2, color: C.text, border: `1px solid ${C.border}` };
+          ? { background: C.green, color: '#fff', borderRadius: 8, fontWeight: 500 }
+          : { background: C.panel, color: C.text, border: `1px solid ${C.text}`, borderRadius: 8, fontWeight: 500 };
   return (
     <button
       type={type ?? (onClick ? 'button' : 'submit')}
       onClick={onClick}
       disabled={disabled}
-      className={`fp-btn${kind === 'primary' ? ' fp-btn-primary' : ''}`}
+      className="fp-btn"
       style={{
-        padding: small ? '0.32rem 0.75rem' : '0.55rem 1.15rem',
-        fontSize: small ? '0.8rem' : '0.9rem',
+        padding: small ? '0 1rem' : '0 1.6rem',
+        height: small ? 40 : 52,
+        fontSize: small ? '0.85rem' : '0.95rem',
         opacity: disabled ? 0.5 : 1,
         cursor: disabled ? 'default' : 'pointer',
+        fontFamily: 'inherit',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxSizing: 'border-box',
         ...styles,
       }}
     >
@@ -156,20 +164,20 @@ export function Card({
   actions?: ReactNode;
 }) {
   return (
-    <section className="fp-card" style={{ padding: '1.15rem 1.35rem', marginBottom: '1rem' }}>
+    <section className="fp-card" style={{ padding: '1.4rem 1.6rem', marginBottom: '1.25rem', borderRadius: 14 }}>
       {(title || actions) && (
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '0.8rem',
+            marginBottom: '1rem',
             flexWrap: 'wrap',
-            gap: 8,
+            gap: 12,
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '1rem', letterSpacing: '-0.01em' }}>{title}</h3>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: C.text }}>{title}</h3>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             {actions}
           </div>
         </div>
@@ -181,7 +189,7 @@ export function Card({
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label style={{ display: 'block' }}>
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <span style={S.label}>{label}</span>
       {children}
     </label>
@@ -190,7 +198,9 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 
 export function Row({ children, gap = 12 }: { children: ReactNode; gap?: number }) {
   return (
-    <div style={{ display: 'flex', gap, flexWrap: 'wrap', alignItems: 'flex-end' }}>{children}</div>
+    <div style={{ display: 'flex', gap, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '1rem' }}>
+      {children}
+    </div>
   );
 }
 
