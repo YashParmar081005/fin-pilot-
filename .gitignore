@@ -32,3 +32,4 @@ Thumbs.db
 # rebase on 2026-07-17. The package now lives at packages/presets. Delete this
 # entry once the directory is removed (reboot, or `chkdsk E: /f` as admin).
 packages/config/
+docker-compose.override.yml
