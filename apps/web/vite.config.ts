@@ -13,7 +13,12 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    // 5173 is Vite's default and collides with other local projects — a stale
+    // FinPilot tab then proxies /api to whatever else grabbed the port and the
+    // HTML reply surfaces as "Internal Server Error". Own port, and strictPort
+    // so a clash fails loudly instead of silently drifting.
+    port: 5180,
+    strictPort: true,
     proxy: {
       // dev-only: the SPA talks to the API through the Vite proxy; Nginx does this in prod (§5.1)
       '/healthz': 'http://localhost:4000',
