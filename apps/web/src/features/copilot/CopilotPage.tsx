@@ -58,6 +58,8 @@ export function CopilotPage() {
           const last = { ...next[next.length - 1]! };
           if (event.type === 'tool_call')
             last.tools = [...last.tools, (event.data as { tool: string }).tool];
+          if (event.type === 'chunk')
+            last.content = (last.content || '') + (event.data as { text: string }).text;
           if (event.type === 'content') last.content = (event.data as { content: string }).content;
           if (event.type === 'fallback') last.fallback = true;
           if (event.type === 'error') last.content = `⚠ ${JSON.stringify(event.data)}`;
@@ -148,8 +150,18 @@ export function CopilotPage() {
                   ))}
                 </div>
               )}
-              {msg.content ||
-                (msg.role === 'assistant' && busy && i === messages.length - 1 ? '…' : msg.content)}
+              {msg.content ? (
+                <>
+                  {msg.content}
+                  {msg.role === 'assistant' && busy && i === messages.length - 1 && (
+                    <span style={{ display: 'inline-block', opacity: 0.8, marginLeft: 2, fontWeight: 'bold' }}>▍</span>
+                  )}
+                </>
+              ) : (
+                msg.role === 'assistant' && busy && i === messages.length - 1 ? (
+                  <span style={{ color: C.muted, fontStyle: 'italic' }}>Thinking…</span>
+                ) : null
+              )}
               {msg.fallback && (
                 <div style={{ color: C.amber, fontSize: '0.7rem', marginTop: 4 }}>
                   grounding failed twice — showing verified raw data instead

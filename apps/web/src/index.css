@@ -32,6 +32,7 @@
   --amber: #f59e0b;
   --shadow: none;
   --shadow-lift: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --accent-glow: rgba(255, 68, 4, 0.08);
 }
 
 :root[data-theme='dark'] {
@@ -50,6 +51,7 @@
   --amber: #f59e0b;
   --shadow: none;
   --shadow-lift: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --accent-glow: rgba(255, 68, 4, 0.16);
 }
 
 * {

@@ -16,7 +16,7 @@ const envSchema = z.object({
   PROCESS_TYPE: z.enum(['api', 'ws', 'worker']).default('api'),
   PORT: z.coerce.number().int().positive().default(4000),
   WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(4002),
-  APP_URL: z.string().url().default('http://localhost:5173'),
+  APP_URL: z.string().url().default('http://localhost:5180'),
   API_URL: z.string().url().default('http://localhost:4000'),
 
   // Mongo MUST be a replica set — verified live at connect time in db.ts.

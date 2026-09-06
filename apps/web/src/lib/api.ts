@@ -77,7 +77,11 @@ export async function api<T>(
   captureImpersonation(res);
   const json = (await res.json().catch(() => ({}))) as { data?: T; error?: ApiError };
   if (!res.ok) {
-    throw new RequestError(res.status, json.error ?? { code: 'UNKNOWN', message: res.statusText });
+    const defaultMsg =
+      res.status === 500
+        ? 'Internal Server Error — backend server (port 4000) may be unreachable or down'
+        : res.statusText || 'Request failed';
+    throw new RequestError(res.status, json.error ?? { code: 'HTTP_' + res.status, message: defaultMsg });
   }
   return json.data as T;
 }

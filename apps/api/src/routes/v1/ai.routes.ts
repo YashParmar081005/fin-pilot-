@@ -39,12 +39,14 @@ aiRoutes.post(
     const ctx = requireCompanyContext();
     const permissions = await permissionCache.get(String(ctx.userId), String(ctx.companyId));
 
-    // SSE stream: tool-call chips, content, done
+    // SSE stream: tool-call chips, chunks, content, done
     res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
     const emit = (event: { type: string; data: unknown }) => {
       res.write(`event: ${event.type}\ndata: ${JSON.stringify(event.data)}\n\n`);
+      (res as unknown as { flush?: () => void }).flush?.();
     };
     try {
       await runCopilotTurn(

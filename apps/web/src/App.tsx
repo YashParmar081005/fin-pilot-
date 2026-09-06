@@ -64,7 +64,7 @@ interface CompanyRow {
   role: { key: string; name: string };
 }
 
-function Logo({ size = '1.35rem' }: { size?: string }) {
+function Logo({ size = '1.35rem', color = 'var(--text)' }: { size?: string; color?: string }) {
   return (
     <span
       style={{
@@ -72,7 +72,7 @@ function Logo({ size = '1.35rem' }: { size?: string }) {
         fontFamily: "'Space Grotesk', sans-serif",
         fontWeight: 500,
         letterSpacing: '-0.03em',
-        color: 'var(--text)',
+        color: color,
         display: 'inline-flex',
         alignItems: 'center',
       }}
@@ -174,71 +174,116 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Airbnb Cereal VF', Circular, -apple-system, sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif" }}>
       <style>{`
+        .auth-card {
+          width: 100%;
+          max-width: 440px;
+          background-color: var(--panel);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 40px 32px;
+          box-shadow: var(--shadow-lift);
+          transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+        }
+        [data-theme='dark'] .auth-card {
+          box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 50px -10px rgba(255, 68, 4, 0.04);
+        }
         .airbnb-input {
           width: 100%;
-          height: 56px;
-          padding: 14px 12px;
-          border-radius: 8px;
+          height: 48px;
+          padding: 12px 16px;
+          border-radius: 10px;
           border: 1px solid var(--border);
           background-color: var(--panel);
           color: var(--text);
-          font-size: 16px;
+          font-size: 15px;
           outline: none;
-          font-family: 'Airbnb Cereal VF', Circular, -apple-system, sans-serif;
-          transition: border-color 0.2s, border-width 0.2s;
+          font-family: 'Inter', -apple-system, sans-serif;
+          transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
         }
+        [data-theme='dark'] .airbnb-input {
+          background-color: rgba(255, 255, 255, 0.02);
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+        .airbnb-input::placeholder {
+          color: var(--muted);
+          opacity: 0.6;
+        }
+        .airbnb-input:focus,
         .airbnb-input:focus-visible {
-          border: 2px solid var(--accent);
-          padding: 13px 11px; /* offset the 1px border increase to prevent jumping */
+          border: 1px solid var(--accent);
+          box-shadow: 0 0 0 3px var(--accent-glow);
         }
         .airbnb-input.error {
           border-color: var(--red);
         }
+        .airbnb-input.error:focus,
         .airbnb-input.error:focus-visible {
-          border: 2px solid var(--red);
-          padding: 13px 11px;
+          border: 1px solid var(--red);
+          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
         }
         .airbnb-btn {
           width: 100%;
-          height: 48px;
-          padding: 14px 24px;
-          border-radius: 8px;
+          height: 46px;
+          padding: 12px 24px;
+          border-radius: 10px;
           background-color: var(--accent);
           color: #ffffff;
-          font-size: 16px;
-          font-weight: 500;
+          font-size: 15px;
+          font-weight: 600;
           border: none;
           cursor: pointer;
-          font-family: 'Airbnb Cereal VF', Circular, -apple-system, sans-serif;
-          transition: background-color 0.2s;
+          font-family: 'Inter', -apple-system, sans-serif;
+          transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
           display: flex;
           align-items: center;
           justify-content: center;
         }
         .airbnb-btn:hover:not(:disabled) {
           background-color: var(--accent-2);
+          box-shadow: 0 4px 12px var(--accent-glow);
+          transform: translateY(-1px);
         }
-        .airbnb-btn:focus-visible {
-          outline: 2px solid var(--text);
-          outline-offset: 2px;
+        .airbnb-btn:active:not(:disabled) {
+          transform: translateY(0) scale(0.985);
         }
         .airbnb-btn:disabled {
-          background-color: var(--accent-soft);
+          background-color: var(--border);
           color: var(--muted);
           cursor: not-allowed;
         }
         .airbnb-btn-ghost {
           background-color: transparent;
-          color: var(--text);
-          text-decoration: underline;
+          color: var(--muted);
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 500;
           height: auto;
           padding: 8px;
+          transition: color 0.2s;
         }
         .airbnb-btn-ghost:hover:not(:disabled) {
           background-color: transparent;
           color: var(--accent);
+        }
+        .eye-btn {
+          position: absolute;
+          right: 12px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: var(--muted);
+          padding: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          transition: color 0.2s, background-color 0.2s;
+        }
+        .eye-btn:hover {
+          color: var(--text);
+          background-color: var(--panel-2);
         }
       `}</style>
       
@@ -259,34 +304,51 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
           backgroundPosition: 'center',
         }}
       >
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(11, 15, 23, 0.8) 0%, rgba(11, 15, 23, 0.35) 100%)' }} />
         <div
           style={{ position: 'relative', maxWidth: 480, animation: 'fp-fade-up 0.5s ease both' }}
         >
           <div
             style={{
-              fontWeight: 800,
-              fontSize: '2rem',
-              letterSpacing: '-0.03em',
-              marginBottom: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              marginBottom: '3.5rem',
             }}
           >
-            FinPilot <span style={{ opacity: 0.85 }}>AI</span>
+            <Logo size="1.6rem" color="#ffffff" />
+            <span
+              style={{
+                background: 'rgba(255, 68, 4, 0.15)',
+                color: '#ff4404',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                border: '1px solid rgba(255, 68, 4, 0.25)',
+              }}
+            >
+              AI
+            </span>
           </div>
           <h1
             style={{
-              fontSize: '28px',
+              fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+              fontSize: '34px',
               fontWeight: 700,
-              lineHeight: 1.43,
-              margin: '0 0 1rem',
-              letterSpacing: '0',
+              lineHeight: 1.25,
+              margin: '0 0 1.5rem',
+              letterSpacing: '-0.02em',
+              color: '#ffffff',
             }}
           >
             Your books, on autopilot.
             <br />
-            Your numbers, guaranteed real.
+            <span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Your numbers, guaranteed real.</span>
           </h1>
-          <p style={{ opacity: 0.9, lineHeight: 1.5, fontSize: '16px', marginBottom: '2rem' }}>
+          <p style={{ color: 'rgba(255, 255, 255, 0.75)', lineHeight: 1.6, fontSize: '16px', marginBottom: '3rem', fontWeight: 400 }}>
             Cloud accounting for Indian SMEs — three days of GST reconciliation a month becomes one
             click, and "how much cash will I have in two weeks" finally has an answer.
           </p>
@@ -295,14 +357,28 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
               key={i}
               style={{
                 display: 'flex',
-                gap: 12,
+                gap: 16,
                 alignItems: 'flex-start',
-                marginBottom: '16px',
+                marginBottom: '20px',
                 animation: `fp-fade-up 0.5s ease ${0.15 + i * 0.1}s both`,
               }}
             >
-              <span style={{ fontSize: '20px' }}>{icon}</span>
-              <span style={{ fontSize: '16px', opacity: 0.95, lineHeight: 1.43 }}>{text}</span>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                color: '#ff4404',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                flexShrink: 0,
+                marginTop: '2px',
+              }}>
+                {icon}
+              </span>
+              <span style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.5 }}>{text}</span>
             </div>
           ))}
         </div>
@@ -323,14 +399,14 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
         <div style={{ position: 'absolute', top: 24, right: 24 }}>
           <ThemeToggle />
         </div>
-        <div style={{ width: 420, padding: '24px' }}>
+        <div className="auth-card">
           <div style={{ marginBottom: 32 }}>
-            <Logo size="1.4rem" />
+            <Logo size="1.45rem" />
           </div>
-          <h2 style={{ margin: '0 0 8px', fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '0' }}>
+          <h2 style={{ margin: '0 0 8px', fontSize: '26px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h2>
-          <p style={{ color: 'var(--muted)', fontSize: '16px', marginTop: 0, marginBottom: 32, lineHeight: 1.5 }}>
+          <p style={{ color: 'var(--muted)', fontSize: '15px', marginTop: 0, marginBottom: 32, lineHeight: 1.5 }}>
             {mode === 'login'
               ? 'Sign in to your books.'
               : 'Free plan — one company, 50 invoices a month, AI included.'}
@@ -400,19 +476,7 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                   onClick={togglePassVisibility}
                   title={showPassword ? 'Hide password' : 'Show password'}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  style={{
-                    position: 'absolute',
-                    right: 12,
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'var(--muted)',
-                    padding: 4,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '50%',
-                  }}
+                  className="eye-btn"
                 >
                   <EyeIcon show={showPassword} blinking={blinkingPass} />
                 </button>
@@ -512,19 +576,7 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                     onClick={toggleConfirmVisibility}
                     title={showConfirmPassword ? 'Hide password' : 'Show password'}
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                    style={{
-                      position: 'absolute',
-                      right: 12,
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: 'var(--muted)',
-                      padding: 4,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '50%',
-                    }}
+                    className="eye-btn"
                   >
                     <EyeIcon show={showConfirmPassword} blinking={blinkingConfirm} />
                   </button>

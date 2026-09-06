@@ -9,7 +9,7 @@
  * Test env uses a per-process Map for determinism (plan §7).
  */
 import { getEnv } from '../config/env';
-import { getRedis } from '../config/redis';
+import { getRedis, redisStatus } from '../config/redis';
 import { membershipRepo } from '../repositories/membershipRepo';
 
 const TTL_SECONDS = 60;
@@ -21,7 +21,10 @@ function key(userId: string, companyId: string): string {
 }
 
 function useLocal(): boolean {
-  return getEnv().NODE_ENV === 'test';
+  return (
+    getEnv().NODE_ENV === 'test' ||
+    (getEnv().NODE_ENV === 'development' && redisStatus('cache') !== 'connected')
+  );
 }
 
 export const permissionCache = {

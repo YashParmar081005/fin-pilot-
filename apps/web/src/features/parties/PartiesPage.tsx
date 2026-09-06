@@ -16,10 +16,11 @@ interface Party {
 interface Item {
   id: string;
   name: string;
-  kind: string;
-  hsnSacCode?: string;
+  kind: 'goods' | 'service';
+  hsn?: string;
+  sac?: string;
   gstRate: number;
-  sellPricePaise?: number;
+  sellingPricePaise?: number;
   unit?: string;
 }
 
@@ -92,7 +93,8 @@ function PartyForm({ onDone }: { onDone: () => void }) {
 
 function ItemForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState('');
-  const [hsn, setHsn] = useState('');
+  const [kind, setKind] = useState<'service' | 'goods'>('service');
+  const [code, setCode] = useState('');
   const [gstRate, setGstRate] = useState('18');
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
@@ -103,12 +105,13 @@ function ItemForm({ onDone }: { onDone: () => void }) {
     setError(null);
     try {
       await api('POST', '/api/v1/items', {
-        name,
-        kind: 'service',
+        name: name.trim(),
+        kind,
         gstRate: Number(gstRate),
-        ...(hsn ? { hsnSacCode: hsn } : {}),
+        ...(kind === 'service' ? { sac: code.trim() } : { hsn: code.trim() }),
       });
       setName('');
+      setCode('');
       onDone();
     } catch (err) {
       setError(err);
@@ -121,13 +124,21 @@ function ItemForm({ onDone }: { onDone: () => void }) {
     <form onSubmit={submit}>
       <Row>
         <Field label="Item / service name">
-          <input style={S.input} value={name} onChange={(e) => setName(e.target.value)} required />
+          <input style={S.input} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Cloud Consulting" required />
         </Field>
-        <Field label="HSN/SAC">
+        <Field label="Type">
+          <select style={S.input} value={kind} onChange={(e) => setKind(e.target.value as 'service' | 'goods')}>
+            <option value="service">Service (SAC)</option>
+            <option value="goods">Goods (HSN)</option>
+          </select>
+        </Field>
+        <Field label={kind === 'service' ? 'SAC (6 digits)' : 'HSN (4, 6 or 8 digits)'}>
           <input
-            style={{ ...S.input, width: 110 }}
-            value={hsn}
-            onChange={(e) => setHsn(e.target.value)}
+            style={{ ...S.input, width: 140 }}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder={kind === 'service' ? '998311' : '8471'}
+            required
           />
         </Field>
         <Field label="GST %">
@@ -178,8 +189,8 @@ export function PartiesPage() {
           head={['Name', 'Kind', 'HSN/SAC', 'GST rate']}
           rows={(items.data?.items ?? []).map((i) => [
             i.name,
-            i.kind,
-            i.hsnSacCode ?? '—',
+            <Badge key="k" value={i.kind} />,
+            i.sac ?? i.hsn ?? '—',
             `${i.gstRate}%`,
           ])}
         />

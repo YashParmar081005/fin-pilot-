@@ -17,7 +17,7 @@ function createClient(env: Env, name: RedisRole): Redis {
     // The ratelimit client must FAIL FAST (§19.6): no offline queue, no
     // retries — a hung limiter check is worse than a failed one.
     maxRetriesPerRequest: name === 'bull' ? null : name === 'ratelimit' ? 0 : 2,
-    enableOfflineQueue: name !== 'ratelimit',
+    enableOfflineQueue: name === 'bull',
     retryStrategy: (times) => Math.min(times * 200, 5_000),
     lazyConnect: false,
   });

@@ -40,6 +40,7 @@ interface Party {
   id: string;
   name: string;
   type: string[];
+  email?: string;
 }
 
 interface LineDraft {
@@ -64,17 +65,50 @@ function NewInvoice({ parties, onDone }: { parties: Party[]; onDone: () => void 
     setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch } : l)));
   }
 
+  function removeLine(i: number) {
+    setLines((ls) => ls.filter((_, j) => j !== i));
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
     setError(null);
+
+    // Automatically remove/filter out completely empty lines
+    const filledLines = lines.filter(
+      (l) => l.description.trim() !== '' || l.rateRupees.trim() !== '',
+    );
+
+    if (filledLines.length === 0) {
+      setError(new Error('Please add at least one line item with a description and rate.'));
+      return;
+    }
+
+    // Validate that each filled line has description and positive rate
+    for (const [idx, l] of filledLines.entries()) {
+      if (!l.description.trim()) {
+        setError(new Error(`Line ${idx + 1}: Description is required.`));
+        return;
+      }
+      const rateNum = Number(l.rateRupees);
+      if (!l.rateRupees.trim() || isNaN(rateNum) || rateNum < 0) {
+        setError(new Error(`Line ${idx + 1}: Rate must be a valid positive number.`));
+        return;
+      }
+      const qtyNum = Number(l.qty);
+      if (isNaN(qtyNum) || qtyNum <= 0) {
+        setError(new Error(`Line ${idx + 1}: Quantity must be at least 1.`));
+        return;
+      }
+    }
+
+    setBusy(true);
     try {
       await api('POST', '/api/v1/invoices', {
         partyId,
         issueDate,
-        lines: lines.map((l) => ({
-          description: l.description,
-          qty: Number(l.qty),
+        lines: filledLines.map((l) => ({
+          description: l.description.trim(),
+          qty: Number(l.qty) || 1,
           ratePaise: rupeesToPaise(l.rateRupees),
           gstRate: Number(l.gstRate),
         })),
@@ -122,7 +156,7 @@ function NewInvoice({ parties, onDone }: { parties: Party[]; onDone: () => void 
               style={{ ...S.input, width: 240 }}
               value={line.description}
               onChange={(e) => setLine(i, { description: e.target.value })}
-              required
+              placeholder="e.g. Consulting"
             />
           </Field>
           <Field label="Qty">
@@ -137,7 +171,7 @@ function NewInvoice({ parties, onDone }: { parties: Party[]; onDone: () => void 
               style={{ ...S.input, width: 110 }}
               value={line.rateRupees}
               onChange={(e) => setLine(i, { rateRupees: e.target.value })}
-              required
+              placeholder="5000"
             />
           </Field>
           <Field label="GST %">
@@ -148,15 +182,38 @@ function NewInvoice({ parties, onDone }: { parties: Party[]; onDone: () => void 
             >
               {['0', '5', '18', '40'].map((r) => (
                 <option key={r} value={r}>
-                  {r}
+                  {r}%
                 </option>
               ))}
             </select>
           </Field>
+          {lines.length > 1 && (
+            <button
+              type="button"
+              title="Remove line"
+              onClick={() => removeLine(i)}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                color: 'var(--red)',
+                cursor: 'pointer',
+                padding: '7px 12px',
+                fontSize: '14px',
+                fontWeight: 600,
+                alignSelf: 'flex-end',
+                marginBottom: 6,
+                transition: 'background-color 0.2s',
+              }}
+            >
+              ✕
+            </button>
+          )}
           {i === lines.length - 1 && (
             <Btn
               small
               kind="ghost"
+              type="button"
               onClick={() =>
                 setLines((ls) => [
                   ...ls,
@@ -188,12 +245,21 @@ export function InvoicesPage() {
 
   async function act(id: string, action: 'issue' | 'cancel' | 'send') {
     setError(null);
-    try {
-      await api(
-        'POST',
-        `/api/v1/invoices/${id}/${action}`,
-        action === 'cancel' ? { reason: 'cancelled from UI' } : {},
+    let body: Record<string, unknown> = {};
+    if (action === 'cancel') {
+      body = { reason: 'cancelled from UI' };
+    } else if (action === 'send') {
+      const inv = invoices.data?.invoices.find((i) => i.id === id);
+      const party = parties.data?.parties.find((p) => p.name === inv?.partySnapshot?.name);
+      const recipient = window.prompt(
+        `Send invoice ${inv?.invoiceNumber ?? ''} to email:`,
+        party?.email || '',
       );
+      if (!recipient || !recipient.trim()) return;
+      body = { email: recipient.trim() };
+    }
+    try {
+      await api('POST', `/api/v1/invoices/${id}/${action}`, body);
       invoices.reload();
     } catch (err) {
       setError(err);

@@ -3,6 +3,7 @@ import type { CancelInvoiceInput, CreateInvoiceInput, UpdateInvoiceInput } from 
 import { formatINR } from '@finpilot/shared';
 import type { InvoiceDoc } from '../models/Invoice';
 import { invoiceService } from '../services/invoiceService';
+import { partyRepo } from '../repositories/partyRepo';
 import { sendMail } from '../services/mailService';
 import { AppError } from '../utils/AppError';
 import { ok } from '../utils/respond';
@@ -54,7 +55,12 @@ export const invoiceController = {
     const invoice = await invoiceService.get(String(req.params.id));
     if (invoice.status === 'draft')
       throw new AppError('DOC_CANNOT_EDIT_ISSUED', 409, { reason: 'issue before sending' });
-    const to = typeof req.body?.email === 'string' ? req.body.email : null;
+    let to =
+      typeof req.body?.email === 'string' && req.body.email.trim() ? req.body.email.trim() : null;
+    if (!to && invoice.partyId) {
+      const party = await partyRepo.findById(String(invoice.partyId));
+      if (party?.email) to = party.email;
+    }
     if (!to) throw new AppError('SYS_VALIDATION_FAILED', 422, { email: 'required' });
     await sendMail({
       to,
