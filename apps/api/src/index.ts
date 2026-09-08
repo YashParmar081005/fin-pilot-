@@ -10,11 +10,13 @@ import { closeRedis, getRedis } from './config/redis';
 import { buildApp } from './server';
 import { startWorker } from './worker';
 import { initLlmProvider } from './ai/provider';
+import { initOcr, shutdownOcr } from './ocr';
 
 async function startApi(env: Env): Promise<void> {
   await connectMongo(env);
   getRedis(env, 'cache');
   initLlmProvider();
+  initOcr();
 
   const app = buildApp('api');
   const server = app.listen(env.PORT, () => {
@@ -24,6 +26,7 @@ async function startApi(env: Env): Promise<void> {
   const shutdown = async (signal: string) => {
     logger.info({ signal }, 'api shutting down');
     server.close();
+    await shutdownOcr();
     await closeRedis();
     await disconnectMongo();
     process.exit(0);

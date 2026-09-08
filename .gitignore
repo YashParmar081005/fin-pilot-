@@ -33,3 +33,6 @@ Thumbs.db
 # entry once the directory is removed (reboot, or `chkdsk E: /f` as admin).
 packages/config/
 docker-compose.override.yml
+
+# tesseract language models (downloaded on first OCR run)
+*.traineddata
