@@ -30,6 +30,7 @@ import { NotificationsPage } from './features/platform/NotificationsPage';
 import { MembersPage } from './features/platform/MembersPage';
 import { BillingPage } from './features/platform/BillingPage';
 import { AdminPage } from './features/platform/AdminPage';
+import { LandingPage } from './features/landing/LandingPage';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Invoice01Icon,
@@ -117,7 +118,13 @@ const SELLING_POINTS: Array<[React.ReactNode, string]> = [
   ],
 ];
 
-function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
+function AuthPage({
+  onLoggedIn,
+  onBack,
+}: {
+  onLoggedIn: (user: PublicUser) => void;
+  onBack?: () => void;
+}) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -438,11 +445,40 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
           position: 'relative',
         }}
       >
+        <div style={{ position: 'absolute', top: 24, left: 24 }}>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--muted)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '14px',
+                fontWeight: 500,
+                padding: '6px 10px',
+                borderRadius: '6px',
+                transition: 'color 0.15s ease',
+              }}
+              className="airbnb-btn-ghost"
+            >
+              ← Back to home
+            </button>
+          )}
+        </div>
         <div style={{ position: 'absolute', top: 24, right: 24 }}>
           <ThemeToggle />
         </div>
         <div className="auth-card">
-          <div style={{ marginBottom: 32 }}>
+          <div
+            style={{ marginBottom: 32, cursor: onBack ? 'pointer' : 'default', display: 'inline-block' }}
+            onClick={onBack}
+            title={onBack ? 'Back to home' : undefined}
+          >
             <Logo size="1.45rem" />
           </div>
           <h2
@@ -1354,6 +1390,31 @@ export function App() {
   const [user, setUser] = useState<PublicUser | null>(null);
   const [company, setCompany] = useState<CompanyRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authView, setAuthView] = useState<'landing' | 'auth'>(() => {
+    const hash = window.location.hash;
+    return hash.startsWith('#login') || hash.startsWith('#register') ? 'auth' : 'landing';
+  });
+
+  useEffect(() => {
+    function handleHashChange() {
+      const hash = window.location.hash;
+      if (hash.startsWith('#login') || hash.startsWith('#register')) {
+        setAuthView('auth');
+      } else if (
+        !hash ||
+        hash === '#' ||
+        hash === '#/' ||
+        hash.startsWith('#features') ||
+        hash.startsWith('#preview') ||
+        hash.startsWith('#how-it-works') ||
+        hash.startsWith('#architecture')
+      ) {
+        setAuthView('landing');
+      }
+    }
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -1405,6 +1466,8 @@ export function App() {
     setCompanyId(null);
     setUser(null);
     setCompany(null);
+    setAuthView('landing');
+    window.location.hash = '';
   }
 
   if (loading) {
@@ -1427,7 +1490,23 @@ export function App() {
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      {!user && <AuthPage onLoggedIn={setUser} />}
+      {!user && authView === 'landing' && (
+        <LandingPage
+          onGoToAuth={() => {
+            setAuthView('auth');
+            window.location.hash = '#login';
+          }}
+        />
+      )}
+      {!user && authView === 'auth' && (
+        <AuthPage
+          onLoggedIn={setUser}
+          onBack={() => {
+            setAuthView('landing');
+            window.location.hash = '';
+          }}
+        />
+      )}
       {user && !company && (
         <CompanyPicker
           user={user}
