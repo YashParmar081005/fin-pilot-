@@ -4,7 +4,7 @@
  * Suggestions never post; only the Confirm button does.
  */
 import { useState } from 'react';
-import { api, qs } from '../../lib/api';
+import { api, fileToBase64, qs } from '../../lib/api';
 import {
   Badge,
   Btn,
@@ -51,6 +51,25 @@ interface Suggestion {
 
 const bid = (b: { id?: string; _id?: string }) => String(b.id ?? b._id);
 
+interface ScanRow {
+  date: string;
+  narration: string;
+  amountPaise: number;
+  direction: 'credit' | 'debit';
+  reference: string | null;
+  /** A running-balance column independently confirmed this row. */
+  balanceChecked: boolean;
+}
+interface ScanResult {
+  engine: string;
+  confidence: number;
+  rows: ScanRow[];
+  unparsed: string[];
+  openingBalancePaise: number | null;
+  closingBalancePaise: number | null;
+  csv: string;
+}
+
 export function BankingPage() {
   const accounts = useLoad(() =>
     api<{ bankAccounts: BankAccount[] }>('GET', '/api/v1/bank-accounts'),
@@ -81,6 +100,8 @@ export function BankingPage() {
   const [csv, setCsv] = useState('');
   const [error, setError] = useState<unknown>(null);
   const [notice, setNotice] = useState('');
+  const [scanning, setScanning] = useState(false);
+  const [scan, setScan] = useState<ScanResult | null>(null);
 
   async function createAccount(e: React.FormEvent) {
     e.preventDefault();
@@ -91,6 +112,31 @@ export function BankingPage() {
       accounts.reload();
     } catch (err) {
       setError(err);
+    }
+  }
+
+  /**
+   * Read a photographed or scanned statement. This only PROPOSES rows: the
+   * server writes nothing, the rows land in the CSV box below for review, and
+   * the existing Import button is still what stores them (I10).
+   */
+  async function scanStatement(file: File) {
+    setScanning(true);
+    setError(null);
+    setNotice('');
+    setScan(null);
+    try {
+      const result = await api<ScanResult>('POST', `/api/v1/bank-accounts/${active}/scan`, {
+        filename: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        contentBase64: await fileToBase64(file),
+      });
+      setScan(result);
+      setCsv(result.csv);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setScanning(false);
     }
   }
 
@@ -110,6 +156,7 @@ export function BankingPage() {
         `Imported ${result.imported}, skipped ${result.duplicates} duplicates (fingerprint dedupe).`,
       );
       setCsv('');
+      setScan(null);
       txns.reload();
       suggestions.reload();
     } catch (err) {
@@ -172,6 +219,85 @@ export function BankingPage() {
 
       {active && (
         <>
+          <Card title="Scan a statement — PDF or photo">
+            <p style={{ color: C.muted, fontSize: '0.85rem', marginTop: 0 }}>
+              OCR reads the rows and, where the statement prints a running balance, checks each
+              amount against the balance movement. Rows land in the box below for you to review —{' '}
+              <b>nothing is imported until you press Import</b>.
+            </p>
+            <input
+              type="file"
+              accept="application/pdf,image/*"
+              style={{ color: C.text }}
+              disabled={scanning || !active}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void scanStatement(file);
+                e.target.value = '';
+              }}
+            />
+            {scanning && <p style={{ color: C.muted }}>Reading the statement…</p>}
+            {scan && (
+              <>
+                <p style={{ fontSize: '0.85rem', margin: '0.6rem 0 0.4rem' }}>
+                  Read <b>{scan.rows.length}</b> row(s) via {scan.engine} (
+                  {Math.round(scan.confidence * 100)}%)
+                  {scan.rows.filter((r) => r.balanceChecked).length > 0 && (
+                    <>
+                      {' — '}
+                      <span style={{ color: C.green }}>
+                        {scan.rows.filter((r) => r.balanceChecked).length} confirmed by the balance
+                        column
+                      </span>
+                    </>
+                  )}
+                  {scan.unparsed.length > 0 && (
+                    <>
+                      {', '}
+                      <span style={{ color: C.red }}>
+                        {scan.unparsed.length} could not be read — enter by hand
+                      </span>
+                    </>
+                  )}
+                </p>
+                <Tbl
+                  head={['Date', 'Narration', 'Amount', 'In/out', 'Checked']}
+                  rows={scan.rows.map((r) => [
+                    r.date,
+                    r.narration,
+                    <Money key="a" paise={r.amountPaise} />,
+                    r.direction === 'credit' ? 'in' : 'out',
+                    r.balanceChecked ? (
+                      <span key="c" style={{ color: C.green }}>
+                        ✓ balance
+                      </span>
+                    ) : (
+                      <span key="c" style={{ color: C.amber }}>
+                        unconfirmed
+                      </span>
+                    ),
+                  ])}
+                />
+                {scan.unparsed.length > 0 && (
+                  <pre
+                    style={{
+                      fontSize: '0.72rem',
+                      color: C.muted,
+                      background: C.panel2,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 8,
+                      padding: '0.5rem 0.6rem',
+                      whiteSpace: 'pre-wrap',
+                      overflowWrap: 'anywhere',
+                    }}
+                  >
+                    {scan.unparsed.join('\n')}
+                  </pre>
+                )}
+              </>
+            )}
+          </Card>
+
           <Card title="Import statement (CSV with header: Date,Narration,Amount,Ref)">
             <textarea
               style={{ ...S.input, height: 110, fontFamily: 'monospace' }}

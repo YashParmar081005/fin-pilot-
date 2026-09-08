@@ -7,6 +7,8 @@ import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { requireCompanyContext } from '../../plugins/tenantScope';
 import { bankingService } from '../../services/bankingService';
+import { runOcr } from '../../ocr';
+import { parseStatementText, rowsToCsv } from '../../ocr/statement';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { ok } from '../../utils/respond';
 
@@ -28,6 +30,12 @@ const importSchema = z.object({
       reference: z.string().optional(),
     })
     .refine((m) => m.amount || (m.credit && m.debit), 'map amount OR credit+debit columns'),
+});
+/** A scanned statement: same upload contract as a document (§18.5). */
+const scanSchema = z.object({
+  filename: z.string().trim().min(1).max(255),
+  mimeType: z.string().trim().min(1).max(120),
+  contentBase64: z.string().min(1).max(10_000_000), // 10 mb, as /documents (§5.3)
 });
 const manualSchema = z.object({
   date: z.coerce.date(),
@@ -81,6 +89,30 @@ bankingRoutes.post(
       await bankingService.importCsv(String(req.params.id), req.body.csv, req.body.mapping),
       201,
     );
+  }),
+);
+/**
+ * Read a photographed or scanned statement. Deliberately a GET-shaped
+ * operation in POST clothing: it writes NOTHING. The caller reviews the rows
+ * and posts them back through /import, which is what actually stores them —
+ * so a misread statement can never post itself (I10).
+ */
+bankingRoutes.post(
+  '/:id/scan',
+  authorize('bank:reconcile'),
+  validate(scanSchema),
+  asyncHandler(async (req: Request, res: Response) => {
+    // Confirms the account exists and belongs to this company before any work.
+    await bankingService.getAccount(String(req.params.id));
+    const outcome = await runOcr(Buffer.from(req.body.contentBase64, 'base64'));
+    const parsed = parseStatementText(outcome.text);
+    ok(res, {
+      engine: outcome.engine,
+      confidence: Number(outcome.confidence.toFixed(2)),
+      pages: outcome.pages,
+      ...parsed,
+      csv: rowsToCsv(parsed.rows),
+    });
   }),
 );
 bankingRoutes.post(

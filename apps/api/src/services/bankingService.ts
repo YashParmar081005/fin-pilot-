@@ -148,6 +148,13 @@ export const bankingService = {
   },
 
   /** CSV import with a caller-supplied column mapping (per-bank presets = mappings). */
+  /** Resolve one account, tenant-scoped, 404 if it is not this company's. */
+  async getAccount(bankAccountId: string): Promise<BankAccountDoc> {
+    const account = await BankAccount.findOne({ _id: bankAccountId }).lean();
+    if (!account) throw new AppError('SYS_NOT_FOUND', 404);
+    return account as unknown as BankAccountDoc;
+  },
+
   async importCsv(bankAccountId: string, csv: string, mapping: ColumnMapping) {
     const account = await BankAccount.findOne({ _id: bankAccountId }).lean();
     if (!account) throw new AppError('SYS_NOT_FOUND', 404);

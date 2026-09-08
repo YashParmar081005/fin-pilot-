@@ -190,6 +190,52 @@ write(
   'Paste into Banking & reco -> Import statement. Negative Amount = money out.',
 );
 
+/**
+ * A statement laid out the way a bank actually prints one: a header block,
+ * columns, and a RUNNING BALANCE. The balance column is the point - it lets
+ * the scanner reproduce each amount and direction independently and check
+ * them, so these rows import with `balanceChecked: true`.
+ */
+const OPENING = 542000_00;
+let bal = OPENING;
+const ledgerLines = statementRows.map(([d, n, a]) => {
+  const paise = Math.round(Number(a) * 100);
+  bal += paise;
+  const [dd, mm, yyyy] = [d!.slice(8, 10), d!.slice(5, 7), d!.slice(0, 4)];
+  const inr = (p: number) => (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+  const withdrawal = paise < 0 ? inr(-paise) : '';
+  const deposit = paise > 0 ? inr(paise) : '';
+  // OCR flattens the columns, so the row reads: date, narration, amount, balance
+  return `${dd}/${mm}/${yyyy}  ${n}  ${withdrawal || deposit}  ${inr(bal)}`;
+});
+
+const bankStatementScan = [
+  'HDFC BANK LTD - Statement of Account',
+  'Sunrise Traders Pvt Ltd, 22 Ashram Road, Ahmedabad 380009',
+  'Account No: XXXXXXXX1234    IFSC: HDFC0000123',
+  'Period: 01/08/2026 to 08/09/2026',
+  'Opening Balance: ' + (OPENING / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+  'Date        Narration                       Withdrawal    Deposit    Balance',
+  ...ledgerLines,
+  'Closing Balance: ' + (bal / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+];
+
+write(
+  'statement-01-digital.pdf',
+  makeTextLayerPdf(bankStatementScan),
+  'Bank statement WITH a running balance. Scan it in Banking & reco.',
+);
+write(
+  'statement-02-scanned.pdf',
+  makeScannedPdf(bankStatementScan),
+  'The same statement with no text layer - forces Tesseract.',
+);
+write(
+  'statement-03-photo.jpg',
+  makeTextJpeg(bankStatementScan),
+  'A photograph of the statement.',
+);
+
 const statementPdf = [
   'HDFC Bank — Current Account XX1234',
   'Sunrise Traders Pvt Ltd',

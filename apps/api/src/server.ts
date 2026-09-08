@@ -1,6 +1,7 @@
 /**
  * Express app assembly, in the §5.3 middleware order:
- *   requestId → pinoHttp → helmet → cors → json(256kb) → cookies →
+ *   requestId → pinoHttp → helmet → cors → json (256kb; 15mb on the two
+ *   upload routes) → cookies →
  *   routes (/api/v1) → notFound → errorHandler
  * Rate limits, tenancy, RBAC and idempotency slot in at their phases.
  */
@@ -20,6 +21,16 @@ import { requestId } from './middleware/requestId';
 import { metricsMiddleware, renderMetrics } from './observability/metrics';
 import { v1Routes } from './routes/v1';
 import { errorBody } from './utils/respond';
+
+/**
+ * The two endpoints that receive a file as base64. Kept as an explicit list so
+ * raising the ceiling for uploads never silently raises it for anything else.
+ */
+const UPLOAD_PATH = /^\/api\/v1\/(?:documents|bank-accounts\/[a-f\d]{24}\/scan)\/?$/i;
+const isUploadPath = (path: string): boolean => UPLOAD_PATH.test(path);
+
+/** ~15MB of base64 is roughly an 11MB photograph. */
+const uploadJson = express.json({ limit: '15mb' });
 
 export function buildApp(service: HealthResponse['service'] = 'api'): Express {
   const app = express();
@@ -56,15 +67,20 @@ export function buildApp(service: HealthResponse['service'] = 'api'): Express {
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Company-Id', 'Idempotency-Key'],
     }),
   );
-  app.use(
-    express.json({
-      limit: '256kb',
-      // webhook signatures (Razorpay) are HMACs over the RAW body
-      verify: (req, _res, buf) => {
-        (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
-      },
-    }),
-  );
+  // 256kb is right for the API's own traffic and is a real limit, not a
+  // formality. The upload endpoints are the exception: a bill photographed on
+  // a phone is several megabytes before base64 adds a third, so at 256kb they
+  // reject every real photograph. They get their own, larger parser rather
+  // than the whole surface being widened to suit two routes.
+  const jsonOptions = {
+    // webhook signatures (Razorpay) are HMACs over the RAW body
+    verify: (req: express.Request, _res: express.Response, buf: Buffer) => {
+      (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+    },
+  };
+  const standardJson = express.json({ ...jsonOptions, limit: '256kb' });
+  app.use((req, res, next) => (isUploadPath(req.path) ? next() : standardJson(req, res, next)));
+  app.use((req, res, next) => (isUploadPath(req.path) ? uploadJson(req, res, next) : next()));
   app.use(cookieParser());
   // §5.3 #6 — L1 global per-IP limit, before authenticate; fails OPEN (§19.6)
   app.use('/api', globalRateLimit);

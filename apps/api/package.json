@@ -11,6 +11,7 @@
     "seed:demo": "tsx scripts/seed-demo.mts",
     "dummy:docs": "tsx scripts/make-dummy-docs.mts",
     "dummy:verify": "tsx scripts/verify-dummy-ocr.mts",
+    "dummy:verify:statement": "tsx scripts/verify-statement-scan.mts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
