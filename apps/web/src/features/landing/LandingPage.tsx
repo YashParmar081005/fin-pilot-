@@ -98,12 +98,13 @@ function Reveal({
     if (!node) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        // noUncheckedIndexedAccess: the array index is `T | undefined`
+        if (entry?.isIntersecting) {
           setVisible(true);
           observer.disconnect();
         }
       },
-      { threshold: 0.12 }
+      { threshold: 0.12 },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -143,50 +144,51 @@ const STATS = [
   { icon: AiBrain01Icon, value: '0', label: 'AI math hallucinations' },
 ];
 
-const FEATURES: { icon: IconSvgElement; color: string; bg: string; title: string; desc: string }[] = [
-  {
-    icon: AiBrain01Icon,
-    color: 'var(--accent)',
-    bg: 'var(--accent-soft)',
-    title: 'AI Copilot with Grounding',
-    desc: 'The model never does math itself. It queries 24+ read-only tools against your double-entry ledger and drafts human-confirmed actions.',
-  },
-  {
-    icon: ShieldCheck,
-    color: 'var(--green)',
-    bg: 'var(--green-soft)',
-    title: 'GST & IMS Reconciliation',
-    desc: 'Auto-reconcile supplier invoices under the Indian Invoice Management System. Prevent deemed acceptance and claim 100% of rightful ITC.',
-  },
-  {
-    icon: Camera01Icon,
-    color: 'var(--amber)',
-    bg: 'var(--amber-soft)',
-    title: 'OCR Document Capture',
-    desc: 'Snap phone photos of vendor bills or upload PDFs. OCR extracts line items into confident draft journal entries for your approval.',
-  },
-  {
-    icon: BarChartIcon,
-    color: 'var(--blue)',
-    bg: 'var(--blue-soft)',
-    title: 'Monte Carlo Cash Forecast',
-    desc: 'Deterministic 13-week Monte Carlo simulations (P10/P50/P90). Know your exact cash runway weeks in advance with anomaly detection.',
-  },
-  {
-    icon: Invoice01Icon,
-    color: 'var(--accent)',
-    bg: 'var(--accent-soft)',
-    title: 'GST-Compliant Invoicing',
-    desc: 'Generate e-invoices with gapless numbering, auto tax splits, and QR codes — fully aligned with Schedule III reporting requirements.',
-  },
-  {
-    icon: BankIcon,
-    color: 'var(--green)',
-    bg: 'var(--green-soft)',
-    title: 'Multi-Bank Reconciliation',
-    desc: 'Import statements from any Indian bank with duplicate fingerprinting and scored auto-match suggestions you simply confirm.',
-  },
-];
+const FEATURES: { icon: IconSvgElement; color: string; bg: string; title: string; desc: string }[] =
+  [
+    {
+      icon: AiBrain01Icon,
+      color: 'var(--accent)',
+      bg: 'var(--accent-soft)',
+      title: 'AI Copilot with Grounding',
+      desc: 'The model never does math itself. It queries 24+ read-only tools against your double-entry ledger and drafts human-confirmed actions.',
+    },
+    {
+      icon: ShieldCheck,
+      color: 'var(--green)',
+      bg: 'var(--green-soft)',
+      title: 'GST & IMS Reconciliation',
+      desc: 'Auto-reconcile supplier invoices under the Indian Invoice Management System. Prevent deemed acceptance and claim 100% of rightful ITC.',
+    },
+    {
+      icon: Camera01Icon,
+      color: 'var(--amber)',
+      bg: 'var(--amber-soft)',
+      title: 'OCR Document Capture',
+      desc: 'Snap phone photos of vendor bills or upload PDFs. OCR extracts line items into confident draft journal entries for your approval.',
+    },
+    {
+      icon: BarChartIcon,
+      color: 'var(--blue)',
+      bg: 'var(--blue-soft)',
+      title: 'Monte Carlo Cash Forecast',
+      desc: 'Deterministic 13-week Monte Carlo simulations (P10/P50/P90). Know your exact cash runway weeks in advance with anomaly detection.',
+    },
+    {
+      icon: Invoice01Icon,
+      color: 'var(--accent)',
+      bg: 'var(--accent-soft)',
+      title: 'GST-Compliant Invoicing',
+      desc: 'Generate e-invoices with gapless numbering, auto tax splits, and QR codes — fully aligned with Schedule III reporting requirements.',
+    },
+    {
+      icon: BankIcon,
+      color: 'var(--green)',
+      bg: 'var(--green-soft)',
+      title: 'Multi-Bank Reconciliation',
+      desc: 'Import statements from any Indian bank with duplicate fingerprinting and scored auto-match suggestions you simply confirm.',
+    },
+  ];
 
 const STEPS = [
   {
@@ -246,7 +248,12 @@ const PRICING_PLANS = [
     price: '₹1,499',
     period: '/month',
     desc: 'For solo founders and freelancers getting their books in order.',
-    features: ['Up to 100 invoices/mo', 'Single bank account sync', 'Basic GST filing', 'Email support'],
+    features: [
+      'Up to 100 invoices/mo',
+      'Single bank account sync',
+      'Basic GST filing',
+      'Email support',
+    ],
     highlighted: false,
     icon: Invoice01Icon,
   },
@@ -324,1054 +331,1368 @@ export function LandingPage({
   return (
     <>
       <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: 'var(--bg)',
-        color: 'var(--text)',
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-        overflowX: 'hidden',
-        position: 'relative',
-      }}
-    >
-      {/* ── Top Navbar ──────────────────────────────────────────────────── */}
-      <header
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          backgroundColor: 'var(--nav-bg)',
-          borderBottom: '1px solid var(--border)',
-          transition: 'border-color 0.2s ease',
+          minHeight: '100vh',
+          backgroundColor: 'var(--bg)',
+          color: 'var(--text)',
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          overflowX: 'hidden',
+          position: 'relative',
         }}
       >
-        <div
+        {/* ── Top Navbar ──────────────────────────────────────────────────── */}
+        <header
           style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '0.85rem 1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--nav-bg)',
+            borderBottom: '1px solid var(--border)',
+            transition: 'border-color 0.2s ease',
           }}
         >
-          {/* Logo */}
           <div
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none' }}
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            <span
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: '9px',
-                background: 'linear-gradient(135deg, var(--accent) 0%, #ff7744 100%)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 14px var(--accent-glow)',
-              }}
-            >
-              <HugeiconsIcon icon={SparklesIcon} size={17} color="#fff" />
-            </span>
-            <span
-              style={{
-                fontSize: '1.4rem',
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontWeight: 600,
-                letterSpacing: '-0.03em',
-                color: 'var(--text)',
-                display: 'inline-flex',
-                alignItems: 'center',
-              }}
-            >
-              Fin
-              <span style={{ fontWeight: 700, color: 'var(--accent)', marginLeft: '2px' }}>Pilot</span>
-            </span>
-            <span
-              style={{
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                padding: '2px 7px',
-                borderRadius: '999px',
-                backgroundColor: 'var(--accent-soft)',
-                color: 'var(--accent)',
-                border: '1px solid rgba(255, 68, 4, 0.25)',
-              }}
-            >
-              AI
-            </span>
-          </div>
-
-          {/* Navigation links */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '1.75rem' }} className="landing-nav-links">
-            {NAV_LINKS.map((link) => (
-              <a key={link.href} href={link.href} className="landing-link">
-                {link.label}
-              </a>
-            ))}
-          </nav>
-
-          {/* Right Action */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
-            <ThemeToggle theme={theme} onToggle={toggleTheme} />
-            <button onClick={onGoToAuth} className="landing-signin-btn fp-btn-desktop-only">
-              <span>Sign In</span>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
-            </button>
-            <button
-              className="fp-mobile-menu-btn"
-              onClick={() => setMobileNavOpen((v) => !v)}
-              aria-label="Toggle menu"
-              style={{
-                display: 'none',
-                width: 38,
-                height: 38,
-                borderRadius: '10px',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--panel-2)',
-                color: 'var(--text)',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
-            >
-              <HugeiconsIcon icon={mobileNavOpen ? Cancel01Icon : Menu01Icon} size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile nav drawer */}
-        {mobileNavOpen && (
-          <div
-            className="fp-mobile-drawer"
             style={{
-              borderTop: '1px solid var(--border)',
-              backgroundColor: 'var(--panel)',
-              padding: '1rem 1.5rem 1.5rem 1.5rem',
+              maxWidth: '1200px',
+              margin: '0 auto',
+              padding: '0.85rem 1.5rem',
               display: 'flex',
-              flexDirection: 'column',
-              gap: '0.9rem',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="landing-link"
-                onClick={() => setMobileNavOpen(false)}
-                style={{ fontSize: '0.95rem' }}
-              >
-                {link.label}
-              </a>
-            ))}
-            <button
-              onClick={onGoToAuth}
-              className="landing-signin-btn"
-              style={{ justifyContent: 'center', width: '100%' }}
+            {/* Logo */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                userSelect: 'none',
+              }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
-              <span>Sign In</span>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
-            </button>
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '9px',
+                  background: 'linear-gradient(135deg, var(--accent) 0%, #ff7744 100%)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 14px var(--accent-glow)',
+                }}
+              >
+                <HugeiconsIcon icon={SparklesIcon} size={17} color="#fff" />
+              </span>
+              <span
+                style={{
+                  fontSize: '1.4rem',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontWeight: 600,
+                  letterSpacing: '-0.03em',
+                  color: 'var(--text)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                Fin
+                <span style={{ fontWeight: 700, color: 'var(--accent)', marginLeft: '2px' }}>
+                  Pilot
+                </span>
+              </span>
+              <span
+                style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  padding: '2px 7px',
+                  borderRadius: '999px',
+                  backgroundColor: 'var(--accent-soft)',
+                  color: 'var(--accent)',
+                  border: '1px solid rgba(255, 68, 4, 0.25)',
+                }}
+              >
+                AI
+              </span>
+            </div>
+
+            {/* Navigation links */}
+            <nav
+              style={{ display: 'flex', alignItems: 'center', gap: '1.75rem' }}
+              className="landing-nav-links"
+            >
+              {NAV_LINKS.map((link) => (
+                <a key={link.href} href={link.href} className="landing-link">
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+
+            {/* Right Action */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+              <ThemeToggle theme={theme} onToggle={toggleTheme} />
+              <button onClick={onGoToAuth} className="landing-signin-btn fp-btn-desktop-only">
+                <span>Sign In</span>
+                <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
+              </button>
+              <button
+                className="fp-mobile-menu-btn"
+                onClick={() => setMobileNavOpen((v) => !v)}
+                aria-label="Toggle menu"
+                style={{
+                  display: 'none',
+                  width: 38,
+                  height: 38,
+                  borderRadius: '10px',
+                  border: '1px solid var(--border)',
+                  backgroundColor: 'var(--panel-2)',
+                  color: 'var(--text)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <HugeiconsIcon icon={mobileNavOpen ? Cancel01Icon : Menu01Icon} size={18} />
+              </button>
+            </div>
           </div>
-        )}
-      </header>
 
-      {/* ── Hero Section ────────────────────────────────────────────────── */}
-      <section
-        style={{
-          position: 'relative',
-          padding: '5rem 1.5rem 3rem 1.5rem',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          textAlign: 'center',
-        }}
-      >
-        {/* Background ambient mesh */}
-        <div className="fp-hero-glow-a" />
-        <div className="fp-hero-glow-b" />
-        <div className="fp-grid-overlay" />
+          {/* Mobile nav drawer */}
+          {mobileNavOpen && (
+            <div
+              className="fp-mobile-drawer"
+              style={{
+                borderTop: '1px solid var(--border)',
+                backgroundColor: 'var(--panel)',
+                padding: '1rem 1.5rem 1.5rem 1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.9rem',
+              }}
+            >
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="landing-link"
+                  onClick={() => setMobileNavOpen(false)}
+                  style={{ fontSize: '0.95rem' }}
+                >
+                  {link.label}
+                </a>
+              ))}
+              <button
+                onClick={onGoToAuth}
+                className="landing-signin-btn"
+                style={{ justifyContent: 'center', width: '100%' }}
+              >
+                <span>Sign In</span>
+                <HugeiconsIcon icon={ArrowRight01Icon} size={15} />
+              </button>
+            </div>
+          )}
+        </header>
 
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* ── Hero Section ────────────────────────────────────────────────── */}
+        <section
+          style={{
+            position: 'relative',
+            padding: '5rem 1.5rem 3rem 1.5rem',
+            maxWidth: '1200px',
+            margin: '0 auto',
+            textAlign: 'center',
+          }}
+        >
+          {/* Background ambient mesh */}
+          <div className="fp-hero-glow-a" />
+          <div className="fp-hero-glow-b" />
+          <div className="fp-grid-overlay" />
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <Reveal>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  backgroundColor: 'var(--panel-2)',
+                  border: '1px solid var(--border)',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  color: 'var(--muted)',
+                  marginBottom: '1.75rem',
+                }}
+              >
+                <HugeiconsIcon icon={SparklesIcon} size={15} color="var(--accent)" />
+                <span>Automated Accounting for Indian SMEs • GST IMS 2.0 Ready</span>
+              </div>
+            </Reveal>
+
+            <Reveal delay={80}>
+              <h1
+                style={{
+                  fontFamily: "'Space Grotesk', -apple-system, sans-serif",
+                  fontSize: 'clamp(2.3rem, 5.5vw, 4.2rem)',
+                  fontWeight: 700,
+                  lineHeight: 1.12,
+                  letterSpacing: '-0.04em',
+                  maxWidth: '920px',
+                  margin: '0 auto 1.5rem auto',
+                  color: 'var(--text)',
+                }}
+              >
+                Books on Autopilot.{' '}
+                <span
+                  style={{
+                    background: 'linear-gradient(135deg, var(--accent) 0%, #ff7744 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  Math You Can Bet On.
+                </span>
+              </h1>
+            </Reveal>
+
+            <Reveal delay={140}>
+              <p
+                style={{
+                  fontSize: 'clamp(1rem, 1.8vw, 1.22rem)',
+                  lineHeight: 1.6,
+                  color: 'var(--muted)',
+                  maxWidth: '720px',
+                  margin: '0 auto 2.5rem auto',
+                  fontWeight: 400,
+                }}
+              >
+                Double-entry ledger precision paired with an AI Copilot that{' '}
+                <strong style={{ color: 'var(--text)', fontWeight: 600 }}>
+                  narrates what the engine computes — never hallucinating numbers
+                </strong>
+                . Automate GST IMS reconciliation, scan bills with OCR, and forecast cash runway in
+                seconds.
+              </p>
+            </Reveal>
+
+            <Reveal delay={200}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '1rem',
+                  flexWrap: 'wrap',
+                  marginBottom: '3rem',
+                }}
+              >
+                <button onClick={onGoToAuth} className="hero-primary-btn">
+                  <span>Get Started / Sign In</span>
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                </button>
+
+                <a href="#preview" className="hero-secondary-btn">
+                  <span>Live Feature Tour</span>
+                  <HugeiconsIcon icon={Analytics01Icon} size={17} color="var(--muted)" />
+                </a>
+              </div>
+            </Reveal>
+
+            <Reveal delay={260}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '1.5rem',
+                  flexWrap: 'wrap',
+                  fontSize: '0.85rem',
+                  color: 'var(--muted)',
+                  marginBottom: '4rem',
+                }}
+              >
+                {[
+                  'Schedule III Indian Chart',
+                  'Append-Only Reversible Entries',
+                  'Zero AI Math Hallucinations',
+                  '1-Click GST IMS Reconciliation',
+                ].map((item) => (
+                  <span
+                    key={item}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="var(--green)" />
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </Reveal>
+
+            {/* Stats bar */}
+            <Reveal delay={320}>
+              <div className="fp-stats-grid">
+                {STATS.map((s) => (
+                  <div key={s.label} className="fp-stat-card">
+                    <div className="fp-stat-icon">
+                      <HugeiconsIcon icon={s.icon} size={18} />
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                      <div className="fp-stat-value">{s.value}</div>
+                      <div className="fp-stat-label">{s.label}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ── Interactive Product Showcase ───────────────────────────────── */}
+        <section
+          id="preview"
+          style={{ maxWidth: '1120px', margin: '0 auto 6rem auto', padding: '0 1.5rem' }}
+        >
           <Reveal>
             <div
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '6px 14px',
-                borderRadius: '999px',
-                backgroundColor: 'var(--panel-2)',
+                backgroundColor: 'var(--panel)',
                 border: '1px solid var(--border)',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                color: 'var(--muted)',
-                marginBottom: '1.75rem',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                boxShadow: 'var(--shadow-lift)',
+                transition: 'border-color 0.25s ease',
               }}
             >
-              <HugeiconsIcon icon={SparklesIcon} size={15} color="var(--accent)" />
-              <span>Automated Accounting for Indian SMEs • GST IMS 2.0 Ready</span>
-            </div>
-          </Reveal>
-
-          <Reveal delay={80}>
-            <h1
-              style={{
-                fontFamily: "'Space Grotesk', -apple-system, sans-serif",
-                fontSize: 'clamp(2.3rem, 5.5vw, 4.2rem)',
-                fontWeight: 700,
-                lineHeight: 1.12,
-                letterSpacing: '-0.04em',
-                maxWidth: '920px',
-                margin: '0 auto 1.5rem auto',
-                color: 'var(--text)',
-              }}
-            >
-              Books on Autopilot.{' '}
-              <span
+              {/* Mockup Window Header */}
+              <div
                 style={{
-                  background: 'linear-gradient(135deg, var(--accent) 0%, #ff7744 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  padding: '0.85rem 1.25rem',
+                  backgroundColor: 'var(--panel-2)',
+                  borderBottom: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem',
                 }}
               >
-                Math You Can Bet On.
-              </span>
-            </h1>
-          </Reveal>
-
-          <Reveal delay={140}>
-            <p
-              style={{
-                fontSize: 'clamp(1rem, 1.8vw, 1.22rem)',
-                lineHeight: 1.6,
-                color: 'var(--muted)',
-                maxWidth: '720px',
-                margin: '0 auto 2.5rem auto',
-                fontWeight: 400,
-              }}
-            >
-              Double-entry ledger precision paired with an AI Copilot that{' '}
-              <strong style={{ color: 'var(--text)', fontWeight: 600 }}>
-                narrates what the engine computes — never hallucinating numbers
-              </strong>
-              . Automate GST IMS reconciliation, scan bills with OCR, and forecast cash runway in seconds.
-            </p>
-          </Reveal>
-
-          <Reveal delay={200}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1rem',
-                flexWrap: 'wrap',
-                marginBottom: '3rem',
-              }}
-            >
-              <button onClick={onGoToAuth} className="hero-primary-btn">
-                <span>Get Started / Sign In</span>
-                <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
-              </button>
-
-              <a href="#preview" className="hero-secondary-btn">
-                <span>Live Feature Tour</span>
-                <HugeiconsIcon icon={Analytics01Icon} size={17} color="var(--muted)" />
-              </a>
-            </div>
-          </Reveal>
-
-          <Reveal delay={260}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1.5rem',
-                flexWrap: 'wrap',
-                fontSize: '0.85rem',
-                color: 'var(--muted)',
-                marginBottom: '4rem',
-              }}
-            >
-              {[
-                'Schedule III Indian Chart',
-                'Append-Only Reversible Entries',
-                'Zero AI Math Hallucinations',
-                '1-Click GST IMS Reconciliation',
-              ].map((item) => (
-                <span key={item} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color="var(--green)" />
-                  {item}
-                </span>
-              ))}
-            </div>
-          </Reveal>
-
-          {/* Stats bar */}
-          <Reveal delay={320}>
-            <div className="fp-stats-grid">
-              {STATS.map((s) => (
-                <div key={s.label} className="fp-stat-card">
-                  <div className="fp-stat-icon">
-                    <HugeiconsIcon icon={s.icon} size={18} />
-                  </div>
-                  <div style={{ textAlign: 'left' }}>
-                    <div className="fp-stat-value">{s.value}</div>
-                    <div className="fp-stat-label">{s.label}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ── Interactive Product Showcase ───────────────────────────────── */}
-      <section id="preview" style={{ maxWidth: '1120px', margin: '0 auto 6rem auto', padding: '0 1.5rem' }}>
-        <Reveal>
-          <div
-            style={{
-              backgroundColor: 'var(--panel)',
-              border: '1px solid var(--border)',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              boxShadow: 'var(--shadow-lift)',
-              transition: 'border-color 0.25s ease',
-            }}
-          >
-            {/* Mockup Window Header */}
-            <div
-              style={{
-                padding: '0.85rem 1.25rem',
-                backgroundColor: 'var(--panel-2)',
-                borderBottom: '1px solid var(--border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '0.75rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#ef4444' }} />
-                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#f59e0b' }} />
-                <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#10b981' }} />
-                <span
-                  className="fp-hide-on-small"
-                  style={{ marginLeft: 12, fontSize: '0.78rem', color: 'var(--muted)', fontWeight: 500 }}
-                >
-                  app.finpilot.ai — Acme Enterprises Private Limited (FY 2026-27)
-                </span>
-              </div>
-
-              {/* Interactive Tab Switcher */}
-              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                {(
-                  [
-                    { id: 'dashboard', label: 'Dashboard & Forecast', icon: Analytics01Icon },
-                    { id: 'copilot', label: 'AI Copilot', icon: AiBrain01Icon },
-                    { id: 'gst', label: 'GST IMS Portal', icon: ShieldCheck },
-                    { id: 'ocr', label: 'Bill OCR', icon: Camera01Icon },
-                  ] as const
-                ).map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{ width: 11, height: 11, borderRadius: '50%', background: '#ef4444' }}
+                  />
+                  <span
+                    style={{ width: 11, height: 11, borderRadius: '50%', background: '#f59e0b' }}
+                  />
+                  <span
+                    style={{ width: 11, height: 11, borderRadius: '50%', background: '#10b981' }}
+                  />
+                  <span
+                    className="fp-hide-on-small"
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '5px 12px',
-                      borderRadius: '6px',
-                      border: 'none',
-                      fontSize: '0.76rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      backgroundColor: activeTab === tab.id ? 'var(--accent)' : 'transparent',
-                      color: activeTab === tab.id ? '#ffffff' : 'var(--muted)',
-                      transition: 'all 0.15s ease',
+                      marginLeft: 12,
+                      fontSize: '0.78rem',
+                      color: 'var(--muted)',
+                      fontWeight: 500,
                     }}
                   >
-                    <HugeiconsIcon icon={tab.icon} size={14} />
-                    <span className="fp-hide-on-small">{tab.label}</span>
-                  </button>
-                ))}
+                    app.finpilot.ai — Acme Enterprises Private Limited (FY 2026-27)
+                  </span>
+                </div>
+
+                {/* Interactive Tab Switcher */}
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  {(
+                    [
+                      { id: 'dashboard', label: 'Dashboard & Forecast', icon: Analytics01Icon },
+                      { id: 'copilot', label: 'AI Copilot', icon: AiBrain01Icon },
+                      { id: 'gst', label: 'GST IMS Portal', icon: ShieldCheck },
+                      { id: 'ocr', label: 'Bill OCR', icon: Camera01Icon },
+                    ] as const
+                  ).map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '5px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        fontSize: '0.76rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        backgroundColor: activeTab === tab.id ? 'var(--accent)' : 'transparent',
+                        color: activeTab === tab.id ? '#ffffff' : 'var(--muted)',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <HugeiconsIcon icon={tab.icon} size={14} />
+                      <span className="fp-hide-on-small">{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Mockup Body Content */}
-            <div style={{ padding: '1.75rem' }} key={activeTab} className="fp-tab-fade">
-              {activeTab === 'dashboard' && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                  <div className="fp-metric-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 500 }}>Operating Cash</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--green)', fontWeight: 600 }}>+14.2% MoM</span>
-                    </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace" }}>
-                      ₹24,80,450
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}>
-                      Across 3 HDFC & ICICI current accounts
-                    </div>
-                  </div>
-
-                  <div className="fp-metric-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 500 }}>13-Week Cash Forecast</span>
-                      <span
+              {/* Mockup Body Content */}
+              <div style={{ padding: '1.75rem' }} key={activeTab} className="fp-tab-fade">
+                {activeTab === 'dashboard' && (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                      gap: '1.25rem',
+                    }}
+                  >
+                    <div className="fp-metric-card">
+                      <div
                         style={{
-                          fontSize: '0.72rem',
-                          backgroundColor: 'var(--accent-soft)',
-                          color: 'var(--accent)',
-                          padding: '2px 8px',
-                          borderRadius: '4px',
-                          fontWeight: 600,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '0.5rem',
                         }}
                       >
-                        Monte Carlo P50
-                      </span>
+                        <span
+                          style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 500 }}
+                        >
+                          Operating Cash
+                        </span>
+                        <span
+                          style={{ fontSize: '0.75rem', color: 'var(--green)', fontWeight: 600 }}
+                        >
+                          +14.2% MoM
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '1.8rem',
+                          fontWeight: 700,
+                          fontFamily: "'IBM Plex Mono', monospace",
+                        }}
+                      >
+                        ₹24,80,450
+                      </div>
+                      <div
+                        style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}
+                      >
+                        Across 3 HDFC & ICICI current accounts
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        fontSize: '1.8rem',
-                        fontWeight: 700,
-                        fontFamily: "'IBM Plex Mono', monospace",
-                        color: 'var(--accent)',
-                      }}
-                    >
-                      ₹31,15,000
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}>
-                      Runway: 98 days (90% confidence &gt; ₹19.4L)
-                    </div>
-                  </div>
 
-                  <div className="fp-metric-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 500 }}>IMS ITC Actions</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--amber)', fontWeight: 600 }}>Due 14th</span>
+                    <div className="fp-metric-card">
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        <span
+                          style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 500 }}
+                        >
+                          13-Week Cash Forecast
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            backgroundColor: 'var(--accent-soft)',
+                            color: 'var(--accent)',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Monte Carlo P50
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '1.8rem',
+                          fontWeight: 700,
+                          fontFamily: "'IBM Plex Mono', monospace",
+                          color: 'var(--accent)',
+                        }}
+                      >
+                        ₹31,15,000
+                      </div>
+                      <div
+                        style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem' }}
+                      >
+                        Runway: 98 days (90% confidence &gt; ₹19.4L)
+                      </div>
                     </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 700, fontFamily: "'IBM Plex Mono', monospace" }}>
-                      42 / 42 Matched
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--green)', marginTop: '0.35rem' }}>
-                      ✓ Zero deemed-acceptance surprises
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {activeTab === 'copilot' && (
-                <div className="fp-metric-card" style={{ padding: '1.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.25rem' }}>
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '8px',
-                        backgroundColor: 'var(--accent)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#ffffff',
-                      }}
-                    >
-                      <HugeiconsIcon icon={AiBrain01Icon} size={18} />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>FinPilot Grounded Copilot</div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
-                        Read tools: 24 active • Grounding validator: Strict (I9)
+                    <div className="fp-metric-card">
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        <span
+                          style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 500 }}
+                        >
+                          IMS ITC Actions
+                        </span>
+                        <span
+                          style={{ fontSize: '0.75rem', color: 'var(--amber)', fontWeight: 600 }}
+                        >
+                          Due 14th
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '1.8rem',
+                          fontWeight: 700,
+                          fontFamily: "'IBM Plex Mono', monospace",
+                        }}
+                      >
+                        42 / 42 Matched
+                      </div>
+                      <div
+                        style={{ fontSize: '0.75rem', color: 'var(--green)', marginTop: '0.35rem' }}
+                      >
+                        ✓ Zero deemed-acceptance surprises
                       </div>
                     </div>
                   </div>
+                )}
 
-                  <div
-                    style={{
-                      backgroundColor: 'var(--panel)',
-                      border: '1px solid var(--border)',
-                      borderRadius: '10px',
-                      padding: '0.85rem 1.15rem',
-                      maxWidth: '560px',
-                      marginBottom: '1rem',
-                      fontSize: '0.88rem',
-                    }}
-                  >
-                    <span style={{ color: 'var(--muted)', fontSize: '0.75rem', display: 'block', marginBottom: '3px' }}>
-                      Accountant Query
-                    </span>
-                    "How much cash will we have on the 15th after paying our three largest overdue vendor bills?"
-                  </div>
-
-                  <div
-                    style={{
-                      backgroundColor: 'var(--panel)',
-                      border: '1px solid rgba(255, 68, 4, 0.3)',
-                      borderRadius: '10px',
-                      padding: '1rem 1.25rem',
-                      fontSize: '0.88rem',
-                      lineHeight: 1.55,
-                    }}
-                  >
+                {activeTab === 'copilot' && (
+                  <div className="fp-metric-card" style={{ padding: '1.5rem' }}>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '6px',
-                        marginBottom: '0.5rem',
-                        color: 'var(--accent)',
-                        fontWeight: 600,
-                        fontSize: '0.78rem',
+                        gap: '10px',
+                        marginBottom: '1.25rem',
                       }}
                     >
-                      <HugeiconsIcon icon={SparklesIcon} size={14} />
-                      <span>Engine-Validated Answer (0 Math Hallucinations)</span>
+                      <div
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '8px',
+                          backgroundColor: 'var(--accent)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#ffffff',
+                        }}
+                      >
+                        <HugeiconsIcon icon={AiBrain01Icon} size={18} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                          FinPilot Grounded Copilot
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                          Read tools: 24 active • Grounding validator: Strict (I9)
+                        </div>
+                      </div>
                     </div>
-                    <p style={{ margin: '0 0 0.5rem 0' }}>
-                      Based on your verified ledger and current bank balances (
-                      <strong style={{ fontFamily: "'IBM Plex Mono', monospace" }}>₹24,80,450</strong>):
-                    </p>
-                    <ul style={{ margin: '0 0 0.75rem 1.25rem', padding: 0 }}>
-                      <li>
-                        Paying top 3 bills (Apex Logistics ₹1,42,000, Cloudways ₹84,500, Star Pack ₹52,100) totals{' '}
-                        <strong>₹2,78,600</strong>.
-                      </li>
-                      <li>
-                        Expected AR customer collections by the 14th: <strong>₹3,40,000</strong>.
-                      </li>
-                    </ul>
+
                     <div
                       style={{
-                        padding: '0.5rem 0.75rem',
-                        backgroundColor: 'var(--panel-2)',
-                        borderRadius: '6px',
-                        fontWeight: 600,
-                        display: 'inline-block',
+                        backgroundColor: 'var(--panel)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '10px',
+                        padding: '0.85rem 1.15rem',
+                        maxWidth: '560px',
+                        marginBottom: '1rem',
+                        fontSize: '0.88rem',
                       }}
                     >
-                      Projected Cash Balance on 15th:{' '}
-                      <span style={{ color: 'var(--accent)', fontFamily: "'IBM Plex Mono', monospace" }}>₹25,41,850</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'gst' && (
-                <div className="fp-metric-card">
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '1rem',
-                      flexWrap: 'wrap',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>
-                        GSTR-2B vs. Books Reconciliation (IMS)
-                      </h4>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                        Tax Period: March 2026 • Cutoff: 14th midnight
+                      <span
+                        style={{
+                          color: 'var(--muted)',
+                          fontSize: '0.75rem',
+                          display: 'block',
+                          marginBottom: '3px',
+                        }}
+                      >
+                        Accountant Query
                       </span>
+                      "How much cash will we have on the 15th after paying our three largest overdue
+                      vendor bills?"
                     </div>
-                    <span
+
+                    <div
                       style={{
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        backgroundColor: 'var(--green-soft)',
-                        color: 'var(--green)',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
+                        backgroundColor: 'var(--panel)',
+                        border: '1px solid rgba(255, 68, 4, 0.3)',
+                        borderRadius: '10px',
+                        padding: '1rem 1.25rem',
+                        fontSize: '0.88rem',
+                        lineHeight: 1.55,
                       }}
                     >
-                      100% Tax Credit Claimable
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {[
-                      {
-                        supplier: 'Infosys BPM Services',
-                        invoice: 'INV-2026-891',
-                        amount: '₹1,24,000',
-                        status: 'Accepted & Synced',
-                        type: 'match',
-                      },
-                      {
-                        supplier: 'Reliance Retail Ltd',
-                        invoice: 'RR-99412',
-                        amount: '₹46,800',
-                        status: 'Accepted & Synced',
-                        type: 'match',
-                      },
-                      {
-                        supplier: 'Unknown Vendor / Portal Only',
-                        invoice: 'GST-X911',
-                        amount: '₹18,500',
-                        status: 'Rejected (Not in Books)',
-                        type: 'reject',
-                      },
-                    ].map((row, idx) => (
                       <div
-                        key={idx}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '0.75rem 1rem',
+                          gap: '6px',
+                          marginBottom: '0.5rem',
+                          color: 'var(--accent)',
+                          fontWeight: 600,
+                          fontSize: '0.78rem',
+                        }}
+                      >
+                        <HugeiconsIcon icon={SparklesIcon} size={14} />
+                        <span>Engine-Validated Answer (0 Math Hallucinations)</span>
+                      </div>
+                      <p style={{ margin: '0 0 0.5rem 0' }}>
+                        Based on your verified ledger and current bank balances (
+                        <strong style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
+                          ₹24,80,450
+                        </strong>
+                        ):
+                      </p>
+                      <ul style={{ margin: '0 0 0.75rem 1.25rem', padding: 0 }}>
+                        <li>
+                          Paying top 3 bills (Apex Logistics ₹1,42,000, Cloudways ₹84,500, Star Pack
+                          ₹52,100) totals <strong>₹2,78,600</strong>.
+                        </li>
+                        <li>
+                          Expected AR customer collections by the 14th: <strong>₹3,40,000</strong>.
+                        </li>
+                      </ul>
+                      <div
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          backgroundColor: 'var(--panel-2)',
+                          borderRadius: '6px',
+                          fontWeight: 600,
+                          display: 'inline-block',
+                        }}
+                      >
+                        Projected Cash Balance on 15th:{' '}
+                        <span
+                          style={{
+                            color: 'var(--accent)',
+                            fontFamily: "'IBM Plex Mono', monospace",
+                          }}
+                        >
+                          ₹25,41,850
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'gst' && (
+                  <div className="fp-metric-card">
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '1rem',
+                        flexWrap: 'wrap',
+                        gap: '0.75rem',
+                      }}
+                    >
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>
+                          GSTR-2B vs. Books Reconciliation (IMS)
+                        </h4>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                          Tax Period: March 2026 • Cutoff: 14th midnight
+                        </span>
+                      </div>
+                      <span
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          backgroundColor: 'var(--green-soft)',
+                          color: 'var(--green)',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        100% Tax Credit Claimable
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {[
+                        {
+                          supplier: 'Infosys BPM Services',
+                          invoice: 'INV-2026-891',
+                          amount: '₹1,24,000',
+                          status: 'Accepted & Synced',
+                          type: 'match',
+                        },
+                        {
+                          supplier: 'Reliance Retail Ltd',
+                          invoice: 'RR-99412',
+                          amount: '₹46,800',
+                          status: 'Accepted & Synced',
+                          type: 'match',
+                        },
+                        {
+                          supplier: 'Unknown Vendor / Portal Only',
+                          invoice: 'GST-X911',
+                          amount: '₹18,500',
+                          status: 'Rejected (Not in Books)',
+                          type: 'reject',
+                        },
+                      ].map((row, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0.75rem 1rem',
+                            backgroundColor: 'var(--panel)',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border)',
+                            fontSize: '0.82rem',
+                            gap: '0.75rem',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 600 }}>{row.supplier}</div>
+                            <div style={{ color: 'var(--muted)', fontSize: '0.72rem' }}>
+                              Doc: {row.invoice}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div
+                              style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}
+                            >
+                              {row.amount}
+                            </div>
+                            <div
+                              style={{
+                                color: row.type === 'match' ? 'var(--green)' : 'var(--red)',
+                                fontSize: '0.72rem',
+                                fontWeight: 500,
+                              }}
+                            >
+                              {row.status}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'ocr' && (
+                  <div className="fp-metric-card fp-ocr-grid">
+                    <div
+                      style={{
+                        border: '1px dashed var(--border)',
+                        borderRadius: '8px',
+                        padding: '1.5rem',
+                        textAlign: 'center',
+                        backgroundColor: 'var(--panel)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <HugeiconsIcon icon={Camera01Icon} size={32} color="var(--accent)" />
+                      <div style={{ fontWeight: 600, fontSize: '0.88rem', marginTop: '0.75rem' }}>
+                        Receipt_March_OfficeRent.pdf
+                      </div>
+                      <div
+                        style={{ fontSize: '0.74rem', color: 'var(--muted)', marginTop: '0.25rem' }}
+                      >
+                        OCR Confidence: 98.4%
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted)' }}>
+                        Extracted Draft Journal Entry:
+                      </div>
+                      <div
+                        style={{
+                          padding: '0.65rem',
                           backgroundColor: 'var(--panel)',
-                          borderRadius: '8px',
+                          borderRadius: '6px',
                           border: '1px solid var(--border)',
-                          fontSize: '0.82rem',
-                          gap: '0.75rem',
-                          flexWrap: 'wrap',
+                          fontSize: '0.78rem',
                         }}
                       >
                         <div>
-                          <div style={{ fontWeight: 600 }}>{row.supplier}</div>
-                          <div style={{ color: 'var(--muted)', fontSize: '0.72rem' }}>Doc: {row.invoice}</div>
+                          <strong>Debit:</strong> Rent Expense (₹55,000)
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>{row.amount}</div>
-                          <div
-                            style={{
-                              color: row.type === 'match' ? 'var(--green)' : 'var(--red)',
-                              fontSize: '0.72rem',
-                              fontWeight: 500,
-                            }}
-                          >
-                            {row.status}
-                          </div>
+                        <div>
+                          <strong>Debit:</strong> Input CGST 9% (₹4,950) + Input SGST 9% (₹4,950)
+                        </div>
+                        <div>
+                          <strong>Credit:</strong> Landlord Accounts Payable (₹64,900)
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'ocr' && (
-                <div className="fp-metric-card fp-ocr-grid">
-                  <div
-                    style={{
-                      border: '1px dashed var(--border)',
-                      borderRadius: '8px',
-                      padding: '1.5rem',
-                      textAlign: 'center',
-                      backgroundColor: 'var(--panel)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <HugeiconsIcon icon={Camera01Icon} size={32} color="var(--accent)" />
-                    <div style={{ fontWeight: 600, fontSize: '0.88rem', marginTop: '0.75rem' }}>
-                      Receipt_March_OfficeRent.pdf
-                    </div>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--muted)', marginTop: '0.25rem' }}>
-                      OCR Confidence: 98.4%
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--muted)' }}>
-                      Extracted Draft Journal Entry:
-                    </div>
-                    <div
-                      style={{
-                        padding: '0.65rem',
-                        backgroundColor: 'var(--panel)',
-                        borderRadius: '6px',
-                        border: '1px solid var(--border)',
-                        fontSize: '0.78rem',
-                      }}
-                    >
-                      <div>
-                        <strong>Debit:</strong> Rent Expense (₹55,000)
-                      </div>
-                      <div>
-                        <strong>Debit:</strong> Input CGST 9% (₹4,950) + Input SGST 9% (₹4,950)
-                      </div>
-                      <div>
-                        <strong>Credit:</strong> Landlord Accounts Payable (₹64,900)
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                      <button
-                        onClick={onGoToAuth}
-                        style={{
-                          padding: '6px 14px',
-                          backgroundColor: 'var(--accent)',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '6px',
-                          fontSize: '0.76rem',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
+                      <div
+                        style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}
                       >
-                        Confirm Entry
-                      </button>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)', alignSelf: 'center' }}>
-                        Human confirms before posting
-                      </span>
+                        <button
+                          onClick={onGoToAuth}
+                          style={{
+                            padding: '6px 14px',
+                            backgroundColor: 'var(--accent)',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '0.76rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Confirm Entry
+                        </button>
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            color: 'var(--muted)',
+                            alignSelf: 'center',
+                          }}
+                        >
+                          Human confirms before posting
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </Reveal>
-      </section>
-
-      {/* ── Core Feature Pillars ────────────────────────────────────────── */}
-      <section id="features" style={{ maxWidth: '1200px', margin: '0 auto 6rem auto', padding: '0 1.5rem' }}>
-        <Reveal>
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <span className="fp-eyebrow">Why FinPilot</span>
-            <h2 className="fp-h2">Engineered for Accuracy. Built for Speed.</h2>
-            <p style={{ color: 'var(--muted)', fontSize: '1.05rem', maxWidth: '620px', margin: '0.75rem auto 0 auto' }}>
-              Everything Indian small businesses and chartered accountants need to run compliant, audit-ready books.
-            </p>
-          </div>
-        </Reveal>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {FEATURES.map((f, i) => (
-            <Reveal key={f.title} delay={i * 70}>
-              <div className="landing-feature-card">
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '10px',
-                    backgroundColor: f.bg,
-                    color: f.color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '1.25rem',
-                  }}
-                >
-                  <HugeiconsIcon icon={f.icon} size={22} />
-                </div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>{f.title}</h3>
-                <p style={{ color: 'var(--muted)', fontSize: '0.88rem', lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
+                )}
               </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
+            </div>
+          </Reveal>
+        </section>
 
-      {/* ── How It Works ────────────────────────────────────────────────── */}
-      <section
-        id="how-it-works"
-        style={{
-          backgroundColor: 'var(--panel-2)',
-          borderTop: '1px solid var(--border)',
-          borderBottom: '1px solid var(--border)',
-          padding: '5.5rem 1.5rem',
-        }}
-      >
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        {/* ── Core Feature Pillars ────────────────────────────────────────── */}
+        <section
+          id="features"
+          style={{ maxWidth: '1200px', margin: '0 auto 6rem auto', padding: '0 1.5rem' }}
+        >
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-              <span className="fp-eyebrow">The Workflow</span>
-              <h2 className="fp-h2" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)' }}>
-                How FinPilot Works
-              </h2>
-              <p style={{ color: 'var(--muted)', fontSize: '1.02rem', margin: '0.75rem 0 0 0' }}>
-                From raw documents to audit-ready financial statements in three seamless steps.
+              <span className="fp-eyebrow">Why FinPilot</span>
+              <h2 className="fp-h2">Engineered for Accuracy. Built for Speed.</h2>
+              <p
+                style={{
+                  color: 'var(--muted)',
+                  fontSize: '1.05rem',
+                  maxWidth: '620px',
+                  margin: '0.75rem auto 0 auto',
+                }}
+              >
+                Everything Indian small businesses and chartered accountants need to run compliant,
+                audit-ready books.
               </p>
             </div>
           </Reveal>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
-            {STEPS.map((item, i) => (
-              <Reveal key={item.step} delay={i * 100}>
-                <div className="fp-step-card">
-                  <div className="fp-step-number">{item.step}</div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>{item.title}</h3>
-                  <p style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>{item.desc}</p>
-                  {i < STEPS.length - 1 && (
-                    <span className="fp-step-arrow fp-hide-on-small">
-                      <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
-                    </span>
-                  )}
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ─────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: '1200px', margin: '6rem auto', padding: '0 1.5rem' }}>
-        <Reveal>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <span className="fp-eyebrow">Loved by Founders & CAs</span>
-            <h2 className="fp-h2">Trusted by teams who take their books seriously</h2>
-          </div>
-        </Reveal>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal key={t.name} delay={i * 90}>
-              <div className="fp-testimonial-card">
-                <HugeiconsIcon icon={QuoteUpIcon} size={24} color="var(--accent)" />
-                <p style={{ fontSize: '0.92rem', lineHeight: 1.65, color: 'var(--text)', margin: '1rem 0 1.25rem 0' }}>
-                  “{t.quote}”
-                </p>
-                <div style={{ display: 'flex', gap: '2px', marginBottom: '0.75rem' }}>
-                  {Array.from({ length: 5 }).map((_, idx) => (
-                    <HugeiconsIcon key={idx} icon={StarIcon} size={14} color="var(--amber)" />
-                  ))}
-                </div>
-                <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{t.name}</div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>{t.role}</div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Pricing ─────────────────────────────────────────────────────── */}
-      <section
-        id="pricing"
-        style={{
-          backgroundColor: 'var(--panel-2)',
-          borderTop: '1px solid var(--border)',
-          borderBottom: '1px solid var(--border)',
-          padding: '5.5rem 1.5rem',
-        }}
-      >
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-          <Reveal>
-            <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-              <span className="fp-eyebrow">Simple Pricing</span>
-              <h2 className="fp-h2" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)' }}>
-                Plans that scale with your business
-              </h2>
-              <p style={{ color: 'var(--muted)', fontSize: '1.02rem', margin: '0.75rem 0 0 0' }}>
-                Transparent monthly pricing in INR. No hidden setup fees, cancel anytime.
-              </p>
-            </div>
-          </Reveal>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '1.5rem' }}>
-            {PRICING_PLANS.map((plan, i) => (
-              <Reveal key={plan.name} delay={i * 90}>
-                <div className={`fp-pricing-card ${plan.highlighted ? 'fp-pricing-highlighted' : ''}`}>
-                  {plan.highlighted && <span className="fp-pricing-badge">Most Popular</span>}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1.5rem',
+            }}
+          >
+            {FEATURES.map((f, i) => (
+              <Reveal key={f.title} delay={i * 70}>
+                <div className="landing-feature-card">
                   <div
                     style={{
-                      width: 40,
-                      height: 40,
+                      width: 44,
+                      height: 44,
                       borderRadius: '10px',
-                      backgroundColor: plan.highlighted ? 'rgba(255,255,255,0.18)' : 'var(--accent-soft)',
-                      color: plan.highlighted ? '#fff' : 'var(--accent)',
+                      backgroundColor: f.bg,
+                      color: f.color,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginBottom: '1.1rem',
+                      marginBottom: '1.25rem',
                     }}
                   >
-                    <HugeiconsIcon icon={plan.icon} size={20} />
+                    <HugeiconsIcon icon={f.icon} size={22} />
                   </div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem 0' }}>{plan.name}</h3>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>
+                    {f.title}
+                  </h3>
                   <p
                     style={{
-                      fontSize: '0.82rem',
-                      lineHeight: 1.5,
-                      margin: '0 0 1.1rem 0',
-                      color: plan.highlighted ? 'rgba(255,255,255,0.85)' : 'var(--muted)',
+                      color: 'var(--muted)',
+                      fontSize: '0.88rem',
+                      lineHeight: 1.6,
+                      margin: 0,
                     }}
                   >
-                    {plan.desc}
+                    {f.desc}
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '1.4rem' }}>
-                    <span style={{ fontSize: '2rem', fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif" }}>
-                      {plan.price}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '0.85rem',
-                        color: plan.highlighted ? 'rgba(255,255,255,0.75)' : 'var(--muted)',
-                      }}
-                    >
-                      {plan.period}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '1.5rem' }}>
-                    {plan.features.map((feat) => (
-                      <div key={feat} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                        <HugeiconsIcon
-                          icon={CheckmarkCircle02Icon}
-                          size={16}
-                          color={plan.highlighted ? '#fff' : 'var(--green)'}
-                        />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <button onClick={onGoToAuth} className={`fp-pricing-btn ${plan.highlighted ? 'fp-pricing-btn-light' : ''}`}>
-                    Choose {plan.name}
-                  </button>
                 </div>
               </Reveal>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Architecture & Tech Stack ───────────────────────────────────── */}
-      <section id="architecture" style={{ maxWidth: '1100px', margin: '6rem auto', padding: '0 1.5rem' }}>
-        <Reveal>
-          <div className="fp-arch-panel">
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <h3 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '1.6rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>
-                Enterprise-Grade Foundation
-              </h3>
-              <p style={{ color: 'var(--muted)', fontSize: '0.92rem', margin: 0 }}>
-                Zero router bloat. One language across the stack. Strict invariants.
-              </p>
-            </div>
+        {/* ── How It Works ────────────────────────────────────────────────── */}
+        <section
+          id="how-it-works"
+          style={{
+            backgroundColor: 'var(--panel-2)',
+            borderTop: '1px solid var(--border)',
+            borderBottom: '1px solid var(--border)',
+            padding: '5.5rem 1.5rem',
+          }}
+        >
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <Reveal>
+              <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+                <span className="fp-eyebrow">The Workflow</span>
+                <h2 className="fp-h2" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)' }}>
+                  How FinPilot Works
+                </h2>
+                <p style={{ color: 'var(--muted)', fontSize: '1.02rem', margin: '0.75rem 0 0 0' }}>
+                  From raw documents to audit-ready financial statements in three seamless steps.
+                </p>
+              </div>
+            </Reveal>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
-              {TECH_STACK.map((tech) => (
-                <span key={tech} className="fp-tech-chip">
-                  {tech}
-                </span>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: '2rem',
+              }}
+            >
+              {STEPS.map((item, i) => (
+                <Reveal key={item.step} delay={i * 100}>
+                  <div className="fp-step-card">
+                    <div className="fp-step-number">{item.step}</div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 0.5rem 0' }}>
+                      {item.title}
+                    </h3>
+                    <p
+                      style={{
+                        color: 'var(--muted)',
+                        fontSize: '0.9rem',
+                        lineHeight: 1.6,
+                        margin: 0,
+                      }}
+                    >
+                      {item.desc}
+                    </p>
+                    {i < STEPS.length - 1 && (
+                      <span className="fp-step-arrow fp-hide-on-small">
+                        <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                      </span>
+                    )}
+                  </div>
+                </Reveal>
               ))}
             </div>
           </div>
-        </Reveal>
-      </section>
+        </section>
 
-      {/* ── Bottom CTA ──────────────────────────────────────────────────── */}
-      <section className="fp-cta-section">
-        <div className="fp-cta-glow" />
-        <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        {/* ── Testimonials ─────────────────────────────────────────────────── */}
+        <section style={{ maxWidth: '1200px', margin: '6rem auto', padding: '0 1.5rem' }}>
           <Reveal>
-            <h2
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <span className="fp-eyebrow">Loved by Founders & CAs</span>
+              <h2 className="fp-h2">Trusted by teams who take their books seriously</h2>
+            </div>
+          </Reveal>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1.5rem',
+            }}
+          >
+            {TESTIMONIALS.map((t, i) => (
+              <Reveal key={t.name} delay={i * 90}>
+                <div className="fp-testimonial-card">
+                  <HugeiconsIcon icon={QuoteUpIcon} size={24} color="var(--accent)" />
+                  <p
+                    style={{
+                      fontSize: '0.92rem',
+                      lineHeight: 1.65,
+                      color: 'var(--text)',
+                      margin: '1rem 0 1.25rem 0',
+                    }}
+                  >
+                    “{t.quote}”
+                  </p>
+                  <div style={{ display: 'flex', gap: '2px', marginBottom: '0.75rem' }}>
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <HugeiconsIcon key={idx} icon={StarIcon} size={14} color="var(--amber)" />
+                    ))}
+                  </div>
+                  <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{t.name}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>{t.role}</div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Pricing ─────────────────────────────────────────────────────── */}
+        <section
+          id="pricing"
+          style={{
+            backgroundColor: 'var(--panel-2)',
+            borderTop: '1px solid var(--border)',
+            borderBottom: '1px solid var(--border)',
+            padding: '5.5rem 1.5rem',
+          }}
+        >
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <Reveal>
+              <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+                <span className="fp-eyebrow">Simple Pricing</span>
+                <h2 className="fp-h2" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.4rem)' }}>
+                  Plans that scale with your business
+                </h2>
+                <p style={{ color: 'var(--muted)', fontSize: '1.02rem', margin: '0.75rem 0 0 0' }}>
+                  Transparent monthly pricing in INR. No hidden setup fees, cancel anytime.
+                </p>
+              </div>
+            </Reveal>
+
+            <div
               style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 'clamp(2rem, 4vw, 2.8rem)',
-                fontWeight: 700,
-                letterSpacing: '-0.03em',
-                margin: '0 0 1rem 0',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))',
+                gap: '1.5rem',
               }}
             >
-              Ready to experience books on autopilot?
-            </h2>
-            <p style={{ color: 'var(--muted)', fontSize: '1.05rem', margin: '0 0 2.25rem 0' }}>
-              Access the complete dashboard, test the AI Copilot with real double-entry calculations, and explore your
-              company ledger.
-            </p>
-            <button onClick={onGoToAuth} className="hero-primary-btn">
-              <span>Launch FinPilot AI</span>
-              <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
-            </button>
-          </Reveal>
-        </div>
-      </section>
+              {PRICING_PLANS.map((plan, i) => (
+                <Reveal key={plan.name} delay={i * 90}>
+                  <div
+                    className={`fp-pricing-card ${plan.highlighted ? 'fp-pricing-highlighted' : ''}`}
+                  >
+                    {plan.highlighted && <span className="fp-pricing-badge">Most Popular</span>}
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '10px',
+                        backgroundColor: plan.highlighted
+                          ? 'rgba(255,255,255,0.18)'
+                          : 'var(--accent-soft)',
+                        color: plan.highlighted ? '#fff' : 'var(--accent)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '1.1rem',
+                      }}
+                    >
+                      <HugeiconsIcon icon={plan.icon} size={20} />
+                    </div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.35rem 0' }}>
+                      {plan.name}
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: '0.82rem',
+                        lineHeight: 1.5,
+                        margin: '0 0 1.1rem 0',
+                        color: plan.highlighted ? 'rgba(255,255,255,0.85)' : 'var(--muted)',
+                      }}
+                    >
+                      {plan.desc}
+                    </p>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'baseline',
+                        gap: '4px',
+                        marginBottom: '1.4rem',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '2rem',
+                          fontWeight: 700,
+                          fontFamily: "'Space Grotesk', sans-serif",
+                        }}
+                      >
+                        {plan.price}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '0.85rem',
+                          color: plan.highlighted ? 'rgba(255,255,255,0.75)' : 'var(--muted)',
+                        }}
+                      >
+                        {plan.period}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        marginBottom: '1.5rem',
+                      }}
+                    >
+                      {plan.features.map((feat) => (
+                        <div
+                          key={feat}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          <HugeiconsIcon
+                            icon={CheckmarkCircle02Icon}
+                            size={16}
+                            color={plan.highlighted ? '#fff' : 'var(--green)'}
+                          />
+                          <span>{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={onGoToAuth}
+                      className={`fp-pricing-btn ${plan.highlighted ? 'fp-pricing-btn-light' : ''}`}
+                    >
+                      Choose {plan.name}
+                    </button>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
 
-      {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer style={{ backgroundColor: 'var(--panel-2)', borderTop: '1px solid var(--border)', padding: '3.5rem 1.5rem 2rem 1.5rem' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div className="fp-footer-grid">
-            <div style={{ maxWidth: '280px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.9rem' }}>
-                <span
+        {/* ── Architecture & Tech Stack ───────────────────────────────────── */}
+        <section
+          id="architecture"
+          style={{ maxWidth: '1100px', margin: '6rem auto', padding: '0 1.5rem' }}
+        >
+          <Reveal>
+            <div className="fp-arch-panel">
+              <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h3
                   style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: '8px',
-                    background: 'linear-gradient(135deg, var(--accent) 0%, #ff7744 100%)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: '1.6rem',
+                    fontWeight: 700,
+                    margin: '0 0 0.5rem 0',
                   }}
                 >
-                  <HugeiconsIcon icon={SparklesIcon} size={14} color="#fff" />
-                </span>
-                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600, color: 'var(--text)' }}>
-                  Fin<span style={{ color: 'var(--accent)' }}>Pilot</span> AI
-                </span>
+                  Enterprise-Grade Foundation
+                </h3>
+                <p style={{ color: 'var(--muted)', fontSize: '0.92rem', margin: 0 }}>
+                  Zero router bloat. One language across the stack. Strict invariants.
+                </p>
               </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', lineHeight: 1.6, margin: '0 0 1.25rem 0' }}>
-                Cloud accounting built for Indian SMEs — grounded AI, GST IMS automation, and audit-ready books.
-              </p>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {[LinkedinIcon, TwitterIcon, Github01Icon].map((icon, idx) => (
-                  <a key={idx} href="#" className="fp-social-btn" aria-label="Social link">
-                    <HugeiconsIcon icon={icon} size={16} />
-                  </a>
+
+              <div
+                style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}
+              >
+                {TECH_STACK.map((tech) => (
+                  <span key={tech} className="fp-tech-chip">
+                    {tech}
+                  </span>
                 ))}
               </div>
             </div>
+          </Reveal>
+        </section>
 
-            {FOOTER_COLUMNS.map((col) => (
-              <div key={col.title}>
-                <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '1rem', color: 'var(--text)' }}>
-                  {col.title}
+        {/* ── Bottom CTA ──────────────────────────────────────────────────── */}
+        <section className="fp-cta-section">
+          <div className="fp-cta-glow" />
+          <div style={{ maxWidth: '700px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+            <Reveal>
+              <h2
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 'clamp(2rem, 4vw, 2.8rem)',
+                  fontWeight: 700,
+                  letterSpacing: '-0.03em',
+                  margin: '0 0 1rem 0',
+                }}
+              >
+                Ready to experience books on autopilot?
+              </h2>
+              <p style={{ color: 'var(--muted)', fontSize: '1.05rem', margin: '0 0 2.25rem 0' }}>
+                Access the complete dashboard, test the AI Copilot with real double-entry
+                calculations, and explore your company ledger.
+              </p>
+              <button onClick={onGoToAuth} className="hero-primary-btn">
+                <span>Launch FinPilot AI</span>
+                <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+              </button>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ── Footer ──────────────────────────────────────────────────────── */}
+        <footer
+          style={{
+            backgroundColor: 'var(--panel-2)',
+            borderTop: '1px solid var(--border)',
+            padding: '3.5rem 1.5rem 2rem 1.5rem',
+          }}
+        >
+          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <div className="fp-footer-grid">
+              <div style={{ maxWidth: '280px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '0.9rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '8px',
+                      background: 'linear-gradient(135deg, var(--accent) 0%, #ff7744 100%)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <HugeiconsIcon icon={SparklesIcon} size={14} color="#fff" />
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontWeight: 600,
+                      color: 'var(--text)',
+                    }}
+                  >
+                    Fin<span style={{ color: 'var(--accent)' }}>Pilot</span> AI
+                  </span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                  {col.links.map((link) => (
-                    <a key={link} href="#" className="landing-link" style={{ fontSize: '0.85rem' }}>
-                      {link}
+                <p
+                  style={{
+                    fontSize: '0.85rem',
+                    color: 'var(--muted)',
+                    lineHeight: 1.6,
+                    margin: '0 0 1.25rem 0',
+                  }}
+                >
+                  Cloud accounting built for Indian SMEs — grounded AI, GST IMS automation, and
+                  audit-ready books.
+                </p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[LinkedinIcon, TwitterIcon, Github01Icon].map((icon, idx) => (
+                    <a key={idx} href="#" className="fp-social-btn" aria-label="Social link">
+                      <HugeiconsIcon icon={icon} size={16} />
                     </a>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
 
-          <div
-            style={{
-              marginTop: '3rem',
-              paddingTop: '1.5rem',
-              borderTop: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '1rem',
-              fontSize: '0.8rem',
-              color: 'var(--muted)',
-            }}
-          >
-            <span>© {new Date().getFullYear()} FinPilot AI. All rights reserved.</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-              <button
-                onClick={onGoToAuth}
-                style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '0.8rem', padding: 0 }}
-              >
-                Sign In
-              </button>
-              <ThemeToggle theme={theme} onToggle={toggleTheme} />
+              {FOOTER_COLUMNS.map((col) => (
+                <div key={col.title}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: '0.85rem',
+                      marginBottom: '1rem',
+                      color: 'var(--text)',
+                    }}
+                  >
+                    {col.title}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                    {col.links.map((link) => (
+                      <a
+                        key={link}
+                        href="#"
+                        className="landing-link"
+                        style={{ fontSize: '0.85rem' }}
+                      >
+                        {link}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              style={{
+                marginTop: '3rem',
+                paddingTop: '1.5rem',
+                borderTop: '1px solid var(--border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                fontSize: '0.8rem',
+                color: 'var(--muted)',
+              }}
+            >
+              <span>© {new Date().getFullYear()} FinPilot AI. All rights reserved.</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                <button
+                  onClick={onGoToAuth}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--muted)',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    padding: 0,
+                  }}
+                >
+                  Sign In
+                </button>
+                <ThemeToggle theme={theme} onToggle={toggleTheme} />
+              </div>
             </div>
           </div>
-        </div>
-      </footer>
-    </div>
-    <LandingStyles />
-  </>
+        </footer>
+      </div>
+      <LandingStyles />
+    </>
   );
 }
 
 /* ────────────────────────────────────────────────────────────────────────
    Auth Page — polished sign-in / sign-up screen
+
+   UNUSED. The auth screen the app actually renders is `AuthPage` in App.tsx,
+   which talks to /api/v1/auth; this copy only sets local state and would sign
+   nobody in. Kept as-is rather than deleted during the merge — either wire it
+   up (replacing App.tsx's) or remove it, but do not leave two of them.
    ──────────────────────────────────────────────────────────────────────── */
 
-function AuthPage({ onBack, theme, toggleTheme }: { onBack: () => void; theme: Theme; toggleTheme: () => void }) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- see note above
+function AuthPage({
+  onBack,
+  theme,
+  toggleTheme,
+}: {
+  onBack: () => void;
+  theme: Theme;
+  toggleTheme: () => void;
+}) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [submitted, setSubmitted] = useState(false);
   const [name, setName] = useState('');
@@ -1399,7 +1720,16 @@ function AuthPage({ onBack, theme, toggleTheme }: { onBack: () => void; theme: T
       <div className="fp-auth-brand">
         <div className="fp-hero-glow-a" style={{ opacity: 0.6 }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3rem', cursor: 'pointer' }} onClick={onBack}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '3rem',
+              cursor: 'pointer',
+            }}
+            onClick={onBack}
+          >
             <span
               style={{
                 width: 32,
@@ -1413,16 +1743,42 @@ function AuthPage({ onBack, theme, toggleTheme }: { onBack: () => void; theme: T
             >
               <HugeiconsIcon icon={SparklesIcon} size={17} color="#fff" />
             </span>
-            <span style={{ fontSize: '1.4rem', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600, color: '#fff' }}>
+            <span
+              style={{
+                fontSize: '1.4rem',
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontWeight: 600,
+                color: '#fff',
+              }}
+            >
               FinPilot <span style={{ opacity: 0.85 }}>AI</span>
             </span>
           </div>
 
-          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '2.2rem', fontWeight: 700, color: '#fff', lineHeight: 1.2, margin: '0 0 1rem 0', letterSpacing: '-0.03em' }}>
+          <h2
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: '2.2rem',
+              fontWeight: 700,
+              color: '#fff',
+              lineHeight: 1.2,
+              margin: '0 0 1rem 0',
+              letterSpacing: '-0.03em',
+            }}
+          >
             Precision accounting, powered by grounded AI.
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2.5rem', maxWidth: '440px' }}>
-            Join thousands of Indian businesses running GST-compliant, audit-ready books on autopilot.
+          <p
+            style={{
+              color: 'rgba(255,255,255,0.85)',
+              fontSize: '1rem',
+              lineHeight: 1.6,
+              marginBottom: '2.5rem',
+              maxWidth: '440px',
+            }}
+          >
+            Join thousands of Indian businesses running GST-compliant, audit-ready books on
+            autopilot.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -1431,7 +1787,10 @@ function AuthPage({ onBack, theme, toggleTheme }: { onBack: () => void; theme: T
               '1-click GST IMS reconciliation before the 14th cutoff',
               '13-week Monte Carlo cash runway forecasting',
             ].map((item) => (
-              <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#fff' }}>
+              <div
+                key={item}
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#fff' }}
+              >
                 <HugeiconsIcon icon={CheckmarkCircle02Icon} size={18} color="#fff" />
                 <span style={{ fontSize: '0.92rem' }}>{item}</span>
               </div>
@@ -1442,7 +1801,15 @@ function AuthPage({ onBack, theme, toggleTheme }: { onBack: () => void; theme: T
 
       {/* Right form panel */}
       <div className="fp-auth-form-wrap">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '400px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: '400px',
+          }}
+        >
           <button onClick={onBack} className="fp-back-link">
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
             <span>Back to home</span>
@@ -1468,25 +1835,43 @@ function AuthPage({ onBack, theme, toggleTheme }: { onBack: () => void; theme: T
               >
                 <HugeiconsIcon icon={CheckmarkCircle02Icon} size={28} />
               </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>You're all set!</h3>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>
+                You're all set!
+              </h3>
               <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '1.75rem' }}>
                 This is a demo experience — your FinPilot workspace would open right here.
               </p>
-              <button onClick={onBack} className="hero-primary-btn" style={{ width: '100%', justifyContent: 'center' }}>
+              <button
+                onClick={onBack}
+                className="hero-primary-btn"
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
                 <span>Back to Home</span>
                 <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
               </button>
             </div>
           ) : (
             <>
-              <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '1.7rem', fontWeight: 700, margin: '0 0 0.4rem 0' }}>
+              <h2
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: '1.7rem',
+                  fontWeight: 700,
+                  margin: '0 0 0.4rem 0',
+                }}
+              >
                 {mode === 'signin' ? 'Welcome back' : 'Create your account'}
               </h2>
               <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '1.75rem' }}>
-                {mode === 'signin' ? 'Sign in to access your FinPilot dashboard.' : 'Start your 14-day free trial. No card required.'}
+                {mode === 'signin'
+                  ? 'Sign in to access your FinPilot dashboard.'
+                  : 'Start your 14-day free trial. No card required.'}
               </p>
 
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <form
+                onSubmit={handleSubmit}
+                style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+              >
                 {mode === 'signup' && (
                   <label className="fp-input-wrap">
                     <HugeiconsIcon icon={UserIcon} size={17} color="var(--muted)" />
@@ -1528,17 +1913,36 @@ function AuthPage({ onBack, theme, toggleTheme }: { onBack: () => void; theme: T
                   </div>
                 )}
 
-                <button type="submit" className="hero-primary-btn" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
+                <button
+                  type="submit"
+                  className="hero-primary-btn"
+                  style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
+                >
                   <span>{mode === 'signin' ? 'Sign In' : 'Create Account'}</span>
                   <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
                 </button>
               </form>
 
-              <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--muted)', marginTop: '1.75rem' }}>
+              <p
+                style={{
+                  textAlign: 'center',
+                  fontSize: '0.85rem',
+                  color: 'var(--muted)',
+                  marginTop: '1.75rem',
+                }}
+              >
                 {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
                 <button
                   onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent)', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--accent)',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    padding: 0,
+                  }}
                 >
                   {mode === 'signin' ? 'Sign up free' : 'Sign in'}
                 </button>
