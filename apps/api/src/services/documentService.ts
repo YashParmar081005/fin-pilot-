@@ -57,9 +57,19 @@ export function parseInvoiceText(text: string, baseConfidence: number) {
   };
 }
 
-/** Vision tier — paid; the mock "reads" the buffer as text at lower confidence. */
+/**
+ * Vision tier — the mock "reads" the buffer as text at lower confidence; the
+ * real cascade (src/ocr) replaces it at boot.
+ *
+ * `engine` is optional so the placeholder above still satisfies the contract.
+ * A real extractor reports which tier it used, because a digital PDF read
+ * from its own text layer must not be labelled "vision" in the UI or counted
+ * as vision spend — §16 is explicit that clean PDFs never reach a model.
+ */
 export interface VisionExtractor {
-  extract(content: Buffer): Promise<{ text: string; costPaise: number }>;
+  extract(
+    content: Buffer,
+  ): Promise<{ text: string; costPaise: number; engine?: 'text-layer' | 'vision' }>;
 }
 let vision: VisionExtractor = {
   async extract(content) {
@@ -93,13 +103,33 @@ export const documentService = {
       doc.costPaise = 0; // a clean PDF costs ₹0 to extract
     } else {
       const result = await vision.extract(content);
-      doc.extraction = parseInvoiceText(result.text, 0.8);
-      doc.extractedBy = 'vision';
+      // A real cascade may have found a text layer inside a PDF the mimeType
+      // did not advertise; trust what it says it did.
+      const engine = result.engine ?? 'vision';
+      doc.extraction = parseInvoiceText(result.text, engine === 'text-layer' ? 0.95 : 0.8);
+      doc.extractedBy = engine;
       doc.costPaise = result.costPaise;
     }
     doc.status = 'extracted';
     await doc.save();
     return doc.toObject();
+  },
+
+  /**
+   * Everything uploaded for this company, newest first.
+   *
+   * `content` is excluded at the query, not stripped afterwards: a page of
+   * scanned bills is tens of megabytes of Buffer, and none of it is needed to
+   * render the review table.
+   */
+  list(status?: string): Promise<DocumentDoc[]> {
+    const filter: Record<string, unknown> = {};
+    if (status) filter.status = status;
+    return Document.find(filter)
+      .select('-content')
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(200)
+      .lean() as unknown as Promise<DocumentDoc[]>;
   },
 
   async get(id: string): Promise<DocumentDoc> {

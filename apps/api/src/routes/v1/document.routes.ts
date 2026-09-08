@@ -18,6 +18,14 @@ function dto(doc: Record<string, unknown>) {
 export const documentRoutes = Router();
 documentRoutes.use(authenticate, tenantResolve('header'));
 
+documentRoutes.get(
+  '/',
+  authorize('expense:submit'),
+  asyncHandler(async (req: Request, res: Response) => {
+    const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+    ok(res, { documents: (await documentService.list(status)).map((d) => dto(d as never)) });
+  }),
+);
 documentRoutes.post(
   '/',
   authorize('expense:submit'),

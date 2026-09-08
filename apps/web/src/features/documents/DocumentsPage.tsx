@@ -3,7 +3,7 @@
  * the server extracts fields with per-field confidence (never guessed —
  * low confidence = null) → a human reviews and creates the bill draft.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { api, fileToBase64 } from '../../lib/api';
 import { Badge, Btn, C, Card, Err, Field, Money, Row, S, Tbl, useLoad } from '../../lib/ui';
 
@@ -52,6 +52,9 @@ function ConfidenceCell({ field, money }: { field: Extracted<unknown>; money?: b
 
 export function DocumentsPage() {
   const parties = useLoad(() => api<{ parties: Party[] }>('GET', '/api/v1/parties'));
+  // Everything uploaded for this company, not just this browser session —
+  // a refresh used to hide every document that had already been extracted.
+  const saved = useLoad(() => api<{ documents: Doc[] }>('GET', '/api/v1/documents'));
   const [docs, setDocs] = useState<Doc[]>([]);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
@@ -59,6 +62,13 @@ export function DocumentsPage() {
   const [gstRate, setGstRate] = useState('18');
 
   const vendors = (parties.data?.parties ?? []).filter((p) => p.type.includes('vendor'));
+
+  // Session uploads first (freshest), then everything already on the server.
+  // A document present in both is shown from `docs`, which holds the newer copy.
+  const allDocs = useMemo(() => {
+    const inSession = new Set(docs.map((d) => d.id));
+    return [...docs, ...(saved.data?.documents ?? []).filter((d) => !inSession.has(d.id))];
+  }, [docs, saved.data]);
 
   async function upload(file: File) {
     setBusy(true);
@@ -91,7 +101,7 @@ export function DocumentsPage() {
         gstRate: Number(gstRate),
       });
       const fresh = (await api<{ document: Doc }>('GET', `/api/v1/documents/${doc.id}`)).document;
-      setDocs((d) => d.map((x) => (x.id === doc.id ? fresh : x)));
+      setDocs((d) => [fresh, ...d.filter((x) => x.id !== doc.id)]);
     } catch (err) {
       setError(err);
     }
@@ -120,7 +130,7 @@ export function DocumentsPage() {
         <Err error={error} />
       </Card>
 
-      {docs.map((doc) => (
+      {allDocs.map((doc) => (
         <Card
           key={doc.id}
           title={
@@ -202,9 +212,9 @@ export function DocumentsPage() {
           )}
         </Card>
       ))}
-      {docs.length === 0 && (
+      {allDocs.length === 0 && !saved.busy && (
         <p style={{ color: C.muted, fontSize: '0.85rem' }}>
-          Uploads from this session appear here with their extracted fields.
+          No documents yet — upload a PDF or a photo of a vendor bill above.
         </p>
       )}
     </div>

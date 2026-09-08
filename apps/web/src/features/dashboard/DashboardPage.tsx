@@ -61,6 +61,7 @@ interface InvoiceRow {
   invoiceNumber: string | null;
   partySnapshot: { name: string };
   issueDate: string;
+  dueDate: string;
   status: string;
   grandTotalPaise: number;
   amountDuePaise: number;
@@ -178,7 +179,18 @@ export function DashboardPage() {
   );
 
   const weekLabels = (cash.data?.weeks ?? []).map((_, i) => `W${i + 1}`);
-  const overdue = (invoices.data?.invoices ?? []).filter((i) => i.status === 'overdue');
+  // `status === 'overdue'` is stamped by a nightly cron, so between the due
+  // date and that tick an invoice is past due while still labelled "issued" —
+  // the tile said "nothing overdue" while the health score read 100% overdue.
+  // Anything still owed past its due date counts, whatever the stored label.
+  const isOverdue = (i: InvoiceRow): boolean =>
+    i.status === 'overdue' ||
+    (i.amountDuePaise > 0 &&
+      i.status !== 'draft' &&
+      i.status !== 'paid' &&
+      i.status !== 'cancelled' &&
+      new Date(i.dueDate).getTime() < Date.now());
+  const overdue = (invoices.data?.invoices ?? []).filter(isOverdue);
   const overduePaise = overdue.reduce((s, i) => s + i.amountDuePaise, 0);
   const pendingApprovals =
     (bills.data?.bills ?? []).filter((b) => b.status === 'pending_approval').length +
@@ -277,7 +289,15 @@ export function DashboardPage() {
         <Card title="Business health">
           <Err error={health.error} />
           {health.data && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '0.5rem 0' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                padding: '0.5rem 0',
+              }}
+            >
               <HealthGauge score={health.data.overall} />
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
                 {health.data.components.map((comp) => (
@@ -351,7 +371,16 @@ export function DashboardPage() {
                 onClick={() => go(route)}
                 style={{ padding: '0.9rem 0.6rem', textAlign: 'center', animation: 'none' }}
               >
-                <div style={{ fontSize: '1.5rem', marginBottom: 6, display: 'flex', justifyContent: 'center' }}>{icon}</div>
+                <div
+                  style={{
+                    fontSize: '1.5rem',
+                    marginBottom: 6,
+                    display: 'flex',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {icon}
+                </div>
                 <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>{label}</div>
               </div>
             ))}

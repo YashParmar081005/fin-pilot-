@@ -116,6 +116,12 @@ export const ocrVisionExtractor: VisionExtractor = {
       },
       'ocr extraction complete',
     );
-    return { text: outcome.text, costPaise: outcome.costPaise };
+    return {
+      text: outcome.text,
+      costPaise: outcome.costPaise,
+      // Tier 1 is the document's own text layer; both OCR tiers are "vision"
+      // as far as the document record's vocabulary goes.
+      engine: outcome.engine === 'text-layer' ? 'text-layer' : 'vision',
+    };
   },
 };

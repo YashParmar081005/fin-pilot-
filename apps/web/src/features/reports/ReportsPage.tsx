@@ -20,6 +20,25 @@ function isPaiseKey(key: string): boolean {
   return /paise$/i.test(key);
 }
 
+/**
+ * `totalIncomePaise` → "Total income".
+ *
+ * The report endpoints return raw field names and the table used to print
+ * them verbatim, so a P&L was headed TOTALINCOMEPAISE. The "Paise" suffix is
+ * dropped because `cell` has already rendered the value as ₹.
+ */
+function humanise(key: string): string {
+  const words = key
+    .replace(/Paise$/i, '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([a-zA-Z])(\d)/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 function cell(key: string, value: unknown): ReactNode {
   if (typeof value === 'number' && isPaiseKey(key)) return <Money paise={value} />;
   if (value === null || value === undefined) return '—';
@@ -33,16 +52,22 @@ function Render({ value, label }: { value: unknown; label?: string }) {
   if (Array.isArray(value)) {
     const rows = value.filter((v) => v && typeof v === 'object') as Array<Record<string, unknown>>;
     if (rows.length === 0)
-      return <p style={{ color: C.muted, fontSize: '0.85rem' }}>{label ?? 'list'}: empty</p>;
+      return (
+        <p style={{ color: C.muted, fontSize: '0.85rem' }}>
+          {label ? humanise(label) : 'List'}: nothing in this period
+        </p>
+      );
     const cols = Object.keys(rows[0]!).filter(
       (k) => !['accountId', 'partyId', 'id', '_id'].includes(k),
     );
     return (
       <div style={{ marginBottom: '0.8rem' }}>
         {label && (
-          <h4 style={{ margin: '0.4rem 0', color: C.muted, fontSize: '0.8rem' }}>{label}</h4>
+          <h4 style={{ margin: '0.4rem 0', color: C.muted, fontSize: '0.8rem' }}>
+            {humanise(label)}
+          </h4>
         )}
-        <Tbl head={cols} rows={rows.map((r) => cols.map((k) => cell(k, r[k])))} />
+        <Tbl head={cols.map(humanise)} rows={rows.map((r) => cols.map((k) => cell(k, r[k])))} />
       </div>
     );
   }
@@ -53,10 +78,15 @@ function Render({ value, label }: { value: unknown; label?: string }) {
     return (
       <div>
         {label && (
-          <h4 style={{ margin: '0.4rem 0', color: C.muted, fontSize: '0.8rem' }}>{label}</h4>
+          <h4 style={{ margin: '0.4rem 0', color: C.muted, fontSize: '0.8rem' }}>
+            {humanise(label)}
+          </h4>
         )}
         {scalars.length > 0 && (
-          <Tbl head={scalars.map(([k]) => k)} rows={[scalars.map(([k, v]) => cell(k, v))]} />
+          <Tbl
+            head={scalars.map(([k]) => humanise(k))}
+            rows={[scalars.map(([k, v]) => cell(k, v))]}
+          />
         )}
         {nested.map(([k, v]) => (
           <Render key={k} value={v} label={k} />
