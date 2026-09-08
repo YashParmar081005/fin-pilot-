@@ -67,9 +67,18 @@ export function parseInvoiceText(text: string, baseConfidence: number) {
  * as vision spend — §16 is explicit that clean PDFs never reach a model.
  */
 export interface VisionExtractor {
-  extract(
-    content: Buffer,
-  ): Promise<{ text: string; costPaise: number; engine?: 'text-layer' | 'vision' }>;
+  extract(content: Buffer): Promise<{
+    text: string;
+    costPaise: number;
+    engine?: 'text-layer' | 'vision';
+    /**
+     * What the engine itself thought of the read, 0–1. Optional, but supply
+     * it if you can: without it every OCR result is scored at the same flat
+     * tier constant, so a bill photographed in bad light presents a misread
+     * date as confidently as a clean scan presents a correct one.
+     */
+    confidence?: number;
+  }>;
 }
 let vision: VisionExtractor = {
   async extract(content) {
@@ -106,7 +115,11 @@ export const documentService = {
       // A real cascade may have found a text layer inside a PDF the mimeType
       // did not advertise; trust what it says it did.
       const engine = result.engine ?? 'vision';
-      doc.extraction = parseInvoiceText(result.text, engine === 'text-layer' ? 0.95 : 0.8);
+      // The engine's own confidence when it reports one, so a degraded scan
+      // sinks below CONFIDENCE_FLOOR and blanks its fields instead of
+      // presenting a misread value at the tier's flat score.
+      const base = result.confidence ?? (engine === 'text-layer' ? 0.95 : 0.8);
+      doc.extraction = parseInvoiceText(result.text, base);
       doc.extractedBy = engine;
       doc.costPaise = result.costPaise;
     }

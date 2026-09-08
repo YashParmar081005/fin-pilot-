@@ -122,6 +122,7 @@ export const ocrVisionExtractor: VisionExtractor = {
       // Tier 1 is the document's own text layer; both OCR tiers are "vision"
       // as far as the document record's vocabulary goes.
       engine: outcome.engine === 'text-layer' ? 'text-layer' : 'vision',
+      confidence: outcome.confidence,
     };
   },
 };

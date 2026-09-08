@@ -9,6 +9,8 @@
     "dev:worker": "cross-env PROCESS_TYPE=worker tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "seed:demo": "tsx scripts/seed-demo.mts",
+    "dummy:docs": "tsx scripts/make-dummy-docs.mts",
+    "dummy:verify": "tsx scripts/verify-dummy-ocr.mts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
