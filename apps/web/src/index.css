@@ -68,12 +68,21 @@ body {
   padding: 0;
 }
 
-
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  transition: background 0.25s ease, color 0.25s ease;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -204,7 +213,9 @@ body {
   border-radius: 14px;
   box-shadow: none;
   animation: fp-fade-up 0.25s ease both;
-  transition: background 0.25s ease, border-color 0.25s ease;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .fp-btn {
@@ -214,7 +225,10 @@ body {
   font-family: inherit;
   cursor: pointer;
   box-shadow: none;
-  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .fp-btn:hover:not(:disabled) {
@@ -234,7 +248,9 @@ body {
 
 .fp-input {
   font-family: inherit;
-  transition: border-color 0.2s ease, background 0.25s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.25s ease;
 }
 
 .fp-input:focus {
@@ -244,7 +260,9 @@ body {
 }
 
 .fp-nav-item {
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   border-left: 3px solid transparent;
 }
 
@@ -299,7 +317,9 @@ body {
 }
 
 .fp-tile {
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
   box-shadow: none;
   cursor: pointer;
 }
@@ -313,7 +333,9 @@ body {
 .fp-quick {
   cursor: pointer;
   box-shadow: none;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .fp-quick:hover {
@@ -325,7 +347,10 @@ body {
 
 /* collapsible sidebar */
 .fp-sidebar {
-  transition: width 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+  transition:
+    width 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
   overflow-x: hidden;
 }
 
@@ -347,7 +372,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .fp-collapse:hover {
@@ -358,4 +386,206 @@ body {
 
 .fp-account-row:hover {
   background: var(--panel-2) !important;
+}
+
+/* ── toasts ─────────────────────────────────────────────────────────────── */
+
+@keyframes fp-toast-in {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, -6px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes fp-toast-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0) scale(0.96);
+  }
+}
+
+@keyframes fp-toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.fp-toast-viewport {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: min(400px, calc(100vw - 2rem));
+  /* the gaps between toasts must not swallow clicks on the page beneath */
+  pointer-events: none;
+}
+
+.fp-toast {
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem 0.85rem 1.05rem;
+  border-radius: 14px;
+  overflow: hidden;
+  color: var(--text);
+  background: color-mix(in srgb, var(--panel) 92%, var(--fp-toast-accent));
+  border: 1px solid color-mix(in srgb, var(--fp-toast-accent) 34%, var(--border));
+  box-shadow:
+    0 10px 30px -10px rgba(0, 0, 0, 0.28),
+    0 2px 8px -2px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(8px);
+  animation: fp-toast-in 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.fp-toast.leaving {
+  animation: fp-toast-out 0.2s ease both;
+}
+
+.fp-toast-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--fp-toast-accent);
+}
+
+.fp-toast-glyph {
+  flex: none;
+  display: inline-flex;
+  margin-top: 1px;
+}
+
+.fp-toast-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.fp-toast-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.fp-toast-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  color: var(--fp-toast-accent);
+  background: color-mix(in srgb, var(--fp-toast-accent) 16%, transparent);
+}
+
+.fp-toast-code {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+  padding: 0.08rem 0.35rem;
+  border-radius: 6px;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+
+.fp-toast-msg {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text);
+  /* the exact server message, wrapped but never truncated */
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.fp-toast-link {
+  margin: 0.4rem 0.75rem 0 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 1px dashed currentColor;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.fp-toast-link:hover {
+  color: var(--fp-toast-accent);
+}
+
+.fp-toast-details {
+  margin: 0.45rem 0 0;
+  padding: 0.5rem 0.6rem;
+  max-height: 190px;
+  overflow: auto;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.fp-toast-close {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.fp-toast-close:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.fp-toast-progress {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  transform-origin: left;
+  background: var(--fp-toast-accent);
+  opacity: 0.55;
+  animation-name: fp-toast-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+@media (max-width: 560px) {
+  .fp-toast-viewport {
+    top: 0.6rem;
+    right: 0.6rem;
+    left: 0.6rem;
+    width: auto;
+  }
 }

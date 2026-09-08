@@ -99,10 +99,22 @@ import { evaluatePassword, isValidEmail } from './utils/passwordUtils';
 // ── auth page ───────────────────────────────────────────────────────────────
 
 const SELLING_POINTS: Array<[React.ReactNode, string]> = [
-  [<HugeiconsIcon key="1" icon={Invoice01Icon} size={20} />, 'GST-compliant invoicing with gapless numbering and e-invoice IRN'],
-  [<HugeiconsIcon key="2" icon={AiBrain01Icon} size={20} />, 'An AI copilot that narrates numbers the engine computes — never invents one'],
-  [<HugeiconsIcon key="3" icon={BankIcon} size={20} />, 'Bank reconciliation with auto-suggested matches you confirm'],
-  [<HugeiconsIcon key="4" icon={Camera01Icon} size={20} />, 'Photograph a vendor bill — OCR drafts the entry, you approve it'],
+  [
+    <HugeiconsIcon key="1" icon={Invoice01Icon} size={20} />,
+    'GST-compliant invoicing with gapless numbering and e-invoice IRN',
+  ],
+  [
+    <HugeiconsIcon key="2" icon={AiBrain01Icon} size={20} />,
+    'An AI copilot that narrates numbers the engine computes — never invents one',
+  ],
+  [
+    <HugeiconsIcon key="3" icon={BankIcon} size={20} />,
+    'Bank reconciliation with auto-suggested matches you confirm',
+  ],
+  [
+    <HugeiconsIcon key="4" icon={Camera01Icon} size={20} />,
+    'Photograph a vendor bill — OCR drafts the entry, you approve it',
+  ],
 ];
 
 function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
@@ -174,7 +186,13 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Inter', -apple-system, sans-serif" }}>
+    <div
+      style={{
+        display: 'flex',
+        minHeight: '100vh',
+        fontFamily: "'Inter', -apple-system, sans-serif",
+      }}
+    >
       <style>{`
         .auth-card {
           width: 100%;
@@ -286,7 +304,7 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
           background-color: var(--panel-2);
         }
       `}</style>
-      
+
       {/* brand hero - photography led */}
       <div
         style={{
@@ -299,12 +317,20 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
           flexDirection: 'column',
           justifyContent: 'center',
           padding: '4rem 3.2rem',
-          backgroundImage: 'url("https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop")',
+          backgroundImage:
+            'url("https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=1200&auto=format&fit=crop")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(11, 15, 23, 0.8) 0%, rgba(11, 15, 23, 0.35) 100%)' }} />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(135deg, rgba(11, 15, 23, 0.8) 0%, rgba(11, 15, 23, 0.35) 100%)',
+          }}
+        />
         <div
           style={{ position: 'relative', maxWidth: 480, animation: 'fp-fade-up 0.5s ease both' }}
         >
@@ -346,9 +372,19 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
           >
             Your books, on autopilot.
             <br />
-            <span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>Your numbers, guaranteed real.</span>
+            <span style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+              Your numbers, guaranteed real.
+            </span>
           </h1>
-          <p style={{ color: 'rgba(255, 255, 255, 0.75)', lineHeight: 1.6, fontSize: '16px', marginBottom: '3rem', fontWeight: 400 }}>
+          <p
+            style={{
+              color: 'rgba(255, 255, 255, 0.75)',
+              lineHeight: 1.6,
+              fontSize: '16px',
+              marginBottom: '3rem',
+              fontWeight: 400,
+            }}
+          >
             Cloud accounting for Indian SMEs — three days of GST reconciliation a month becomes one
             click, and "how much cash will I have in two weeks" finally has an answer.
           </p>
@@ -363,22 +399,28 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                 animation: `fp-fade-up 0.5s ease ${0.15 + i * 0.1}s both`,
               }}
             >
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                color: '#ff4404',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                flexShrink: 0,
-                marginTop: '2px',
-              }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  color: '#ff4404',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  flexShrink: 0,
+                  marginTop: '2px',
+                }}
+              >
                 {icon}
               </span>
-              <span style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.5 }}>{text}</span>
+              <span
+                style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.5 }}
+              >
+                {text}
+              </span>
             </div>
           ))}
         </div>
@@ -403,19 +445,44 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
           <div style={{ marginBottom: 32 }}>
             <Logo size="1.45rem" />
           </div>
-          <h2 style={{ margin: '0 0 8px', fontSize: '26px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}>
+          <h2
+            style={{
+              margin: '0 0 8px',
+              fontSize: '26px',
+              fontWeight: 700,
+              color: 'var(--text)',
+              letterSpacing: '-0.02em',
+              fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+            }}
+          >
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h2>
-          <p style={{ color: 'var(--muted)', fontSize: '15px', marginTop: 0, marginBottom: 32, lineHeight: 1.5 }}>
+          <p
+            style={{
+              color: 'var(--muted)',
+              fontSize: '15px',
+              marginTop: 0,
+              marginBottom: 32,
+              lineHeight: 1.5,
+            }}
+          >
             {mode === 'login'
               ? 'Sign in to your books.'
               : 'Free plan — one company, 50 invoices a month, AI included.'}
           </p>
-          
+
           <form onSubmit={submit}>
             {mode === 'register' && (
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', marginBottom: 8, fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    marginBottom: 8,
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: 'var(--text)',
+                  }}
+                >
                   Your name
                 </label>
                 <input
@@ -432,7 +499,15 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
             )}
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: 8,
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'var(--text)',
+                }}
+              >
                 Email
               </label>
               <input
@@ -448,14 +523,24 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                 required
               />
               {touchedEmail && !isEmailValid && (
-                <div style={{ color: 'var(--red)', fontSize: '13px', marginTop: 6, fontWeight: 500 }}>
+                <div
+                  style={{ color: 'var(--red)', fontSize: '13px', marginTop: 6, fontWeight: 500 }}
+                >
                   Please enter a valid email address
                 </div>
               )}
             </div>
 
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: 8,
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'var(--text)',
+                }}
+              >
                 Password
               </label>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -537,7 +622,8 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                       </span>
                       <span
                         style={{
-                          color: pwdChecks.upper && pwdChecks.lower ? 'var(--green)' : 'var(--muted)',
+                          color:
+                            pwdChecks.upper && pwdChecks.lower ? 'var(--green)' : 'var(--muted)',
                         }}
                       >
                         {pwdChecks.upper && pwdChecks.lower ? '✓' : '○'} Uppercase & Lowercase
@@ -556,7 +642,15 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
 
             {mode === 'register' && (
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', marginBottom: 8, fontSize: '14px', fontWeight: 500, color: 'var(--text)' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    marginBottom: 8,
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: 'var(--text)',
+                  }}
+                >
                   Confirm Password
                 </label>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -582,7 +676,9 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                   </button>
                 </div>
                 {confirmPassword.length > 0 && confirmPassword !== password && (
-                  <div style={{ color: 'var(--red)', fontSize: '13px', marginTop: 6, fontWeight: 500 }}>
+                  <div
+                    style={{ color: 'var(--red)', fontSize: '13px', marginTop: 6, fontWeight: 500 }}
+                  >
                     Passwords do not match
                   </div>
                 )}
@@ -590,7 +686,7 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
             )}
 
             <Err error={error} />
-            
+
             <div style={{ display: 'grid', gap: 16, marginTop: '32px' }}>
               <button
                 className="airbnb-btn"
@@ -598,7 +694,9 @@ function AuthPage({ onLoggedIn }: { onLoggedIn: (user: PublicUser) => void }) {
                 disabled={
                   busy ||
                   (touchedEmail && !isEmailValid) ||
-                  (mode === 'register' && confirmPassword.length > 0 && confirmPassword !== password)
+                  (mode === 'register' &&
+                    confirmPassword.length > 0 &&
+                    confirmPassword !== password)
                 }
               >
                 {busy ? 'One moment…' : mode === 'login' ? 'Sign in' : 'Create account'}
@@ -775,39 +873,111 @@ function JournalPageWrap() {
 
 // ── navigation ──────────────────────────────────────────────────────────────
 
-const NAV: Array<{ group: string; items: Array<{ key: string; label: string; icon: React.ReactNode }> }> = [
-  { group: '', items: [{ key: 'dashboard', label: 'Dashboard', icon: <HugeiconsIcon icon={Analytics01Icon} size={28} /> }] },
+const NAV: Array<{
+  group: string;
+  items: Array<{ key: string; label: string; icon: React.ReactNode }>;
+}> = [
+  {
+    group: '',
+    items: [
+      {
+        key: 'dashboard',
+        label: 'Dashboard',
+        icon: <HugeiconsIcon icon={Analytics01Icon} size={28} />,
+      },
+    ],
+  },
   {
     group: 'Core ledger',
     items: [
-      { key: 'accounts', label: 'Chart of accounts', icon: <HugeiconsIcon icon={HierarchyIcon} size={28} /> },
+      {
+        key: 'accounts',
+        label: 'Chart of accounts',
+        icon: <HugeiconsIcon icon={HierarchyIcon} size={28} />,
+      },
       { key: 'journal', label: 'Journal', icon: <HugeiconsIcon icon={Book01Icon} size={28} /> },
-      { key: 'trial-balance', label: 'Trial balance', icon: <HugeiconsIcon icon={BalanceScaleIcon} size={28} /> },
-      { key: 'parties', label: 'Parties & items', icon: <HugeiconsIcon icon={UserGroupIcon} size={28} /> },
+      {
+        key: 'trial-balance',
+        label: 'Trial balance',
+        icon: <HugeiconsIcon icon={BalanceScaleIcon} size={28} />,
+      },
+      {
+        key: 'parties',
+        label: 'Parties & items',
+        icon: <HugeiconsIcon icon={UserGroupIcon} size={28} />,
+      },
     ],
   },
-  { group: 'Sales', items: [{ key: 'invoices', label: 'Invoicing', icon: <HugeiconsIcon icon={Invoice01Icon} size={28} /> }] },
+  {
+    group: 'Sales',
+    items: [
+      {
+        key: 'invoices',
+        label: 'Invoicing',
+        icon: <HugeiconsIcon icon={Invoice01Icon} size={28} />,
+      },
+    ],
+  },
   {
     group: 'Purchases',
     items: [
-      { key: 'bills', label: 'Bills & expenses', icon: <HugeiconsIcon icon={FileDownloadIcon} size={28} /> },
-      { key: 'documents', label: 'Scan a bill (OCR)', icon: <HugeiconsIcon icon={Camera01Icon} size={28} /> },
+      {
+        key: 'bills',
+        label: 'Bills & expenses',
+        icon: <HugeiconsIcon icon={FileDownloadIcon} size={28} />,
+      },
+      {
+        key: 'documents',
+        label: 'Scan a bill (OCR)',
+        icon: <HugeiconsIcon icon={Camera01Icon} size={28} />,
+      },
     ],
   },
   {
     group: 'Money',
     items: [
-      { key: 'payments', label: 'Payments', icon: <HugeiconsIcon icon={MoneySend01Icon} size={28} /> },
-      { key: 'banking', label: 'Banking & reco', icon: <HugeiconsIcon icon={BankIcon} size={28} /> },
+      {
+        key: 'payments',
+        label: 'Payments',
+        icon: <HugeiconsIcon icon={MoneySend01Icon} size={28} />,
+      },
+      {
+        key: 'banking',
+        label: 'Banking & reco',
+        icon: <HugeiconsIcon icon={BankIcon} size={28} />,
+      },
     ],
   },
-  { group: 'Compliance', items: [{ key: 'gst', label: 'GST & IMS', icon: <HugeiconsIcon icon={ShieldCheck} size={28} /> }] },
-  { group: 'Reports', items: [{ key: 'reports', label: 'All reports', icon: <HugeiconsIcon icon={BarChartIcon} size={28} /> }] },
-  { group: 'AI', items: [{ key: 'copilot', label: 'Copilot', icon: <HugeiconsIcon icon={AiMagicIcon} size={28} /> }] },
+  {
+    group: 'Compliance',
+    items: [
+      { key: 'gst', label: 'GST & IMS', icon: <HugeiconsIcon icon={ShieldCheck} size={28} /> },
+    ],
+  },
+  {
+    group: 'Reports',
+    items: [
+      {
+        key: 'reports',
+        label: 'All reports',
+        icon: <HugeiconsIcon icon={BarChartIcon} size={28} />,
+      },
+    ],
+  },
+  {
+    group: 'AI',
+    items: [
+      { key: 'copilot', label: 'Copilot', icon: <HugeiconsIcon icon={AiMagicIcon} size={28} /> },
+    ],
+  },
   {
     group: 'Platform',
     items: [
-      { key: 'notifications', label: 'Notifications', icon: <HugeiconsIcon icon={Notification01Icon} size={28} /> },
+      {
+        key: 'notifications',
+        label: 'Notifications',
+        icon: <HugeiconsIcon icon={Notification01Icon} size={28} />,
+      },
       { key: 'team', label: 'Team', icon: <HugeiconsIcon icon={UserGroupIcon} size={28} /> },
       { key: 'billing', label: 'Billing', icon: <HugeiconsIcon icon={CreditCardIcon} size={28} /> },
     ],
@@ -869,10 +1039,23 @@ function NavItem({
         transition: 'all 0.18s ease',
       }}
     >
-      <span style={{ fontSize: collapsed ? '1.25rem' : '1.1rem', display: 'inline-flex', alignItems: 'center', color: active ? C.accent : C.muted }}>
+      <span
+        style={{
+          fontSize: collapsed ? '1.25rem' : '1.1rem',
+          display: 'inline-flex',
+          alignItems: 'center',
+          color: active ? C.accent : C.muted,
+        }}
+      >
         {icon}
       </span>
-      {!collapsed && <span style={{ flex: 1, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{label}</span>}
+      {!collapsed && (
+        <span
+          style={{ flex: 1, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}
+        >
+          {label}
+        </span>
+      )}
       {badge !== undefined && badge > 0 && (
         <span
           style={
@@ -938,12 +1121,19 @@ function Shell({
 
   useEffect(() => onImpersonationChange(setImp), []);
   useEffect(() => {
-    api<{ organizations: unknown[] }>('GET', '/api/v1/admin/organizations')
+    api<{ organizations: unknown[] }>('GET', '/api/v1/admin/organizations', undefined, {
+      silent: [401, 403],
+    })
       .then(() => setIsAdmin(true))
       .catch(() => setIsAdmin(false));
   }, []);
   const pollUnread = useCallback(() => {
-    api<{ notifications: Array<{ readAt: string | null }> }>('GET', '/api/v1/notifications')
+    api<{ notifications: Array<{ readAt: string | null }> }>(
+      'GET',
+      '/api/v1/notifications',
+      undefined,
+      { silent: true },
+    )
       .then((d) => setUnread(d.notifications.filter((n) => !n.readAt).length))
       .catch(() => undefined);
   }, []);
@@ -1143,7 +1333,13 @@ function Shell({
         </header>
         <main
           key={route}
-          style={{ padding: '1.75rem 2.5rem', width: '100%', maxWidth: '100%', minWidth: 0, animation: 'fp-fade-in 0.25s ease' }}
+          style={{
+            padding: '1.75rem 2.5rem',
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+            animation: 'fp-fade-in 0.25s ease',
+          }}
         >
           {PAGES[route] ?? <DashboardPage />}
         </main>
@@ -1161,14 +1357,21 @@ export function App() {
 
   useEffect(() => {
     let active = true;
-    api<{ accessToken: string; user: PublicUser }>('POST', '/api/v1/auth/refresh')
+    api<{ accessToken: string; user: PublicUser }>('POST', '/api/v1/auth/refresh', undefined, {
+      silent: [401],
+    })
       .then(async (data) => {
         if (!active) return;
         setAccessToken(data.accessToken);
         setUser(data.user);
         try {
           const savedCompId = localStorage.getItem('fp-company-id');
-          const comps = await api<{ companies: CompanyRow[] }>('GET', '/api/v1/companies');
+          const comps = await api<{ companies: CompanyRow[] }>(
+            'GET',
+            '/api/v1/companies',
+            undefined,
+            { silent: [401, 403] },
+          );
           if (!active) return;
           const match =
             comps.companies.find((c) => c.id === savedCompId) ??
@@ -1192,7 +1395,7 @@ export function App() {
   }, []);
 
   function logout() {
-    void api('POST', '/api/v1/auth/logout', {}).catch(() => undefined);
+    void api('POST', '/api/v1/auth/logout', {}, { silent: true }).catch(() => undefined);
     try {
       localStorage.removeItem('fp-company-id');
     } catch {

@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { formatINR } from '@finpilot/shared';
 import { RequestError } from './api';
+import { useOptionalToast } from './toast';
 
 /** Theme tokens as var() references — safe in inline styles everywhere. */
 export const C = {
@@ -128,7 +129,13 @@ export function Btn({
         ? { background: C.red, color: '#fff', borderRadius: 8, fontWeight: 500 }
         : kind === 'success'
           ? { background: C.green, color: '#fff', borderRadius: 8, fontWeight: 500 }
-          : { background: C.panel, color: C.text, border: `1px solid ${C.text}`, borderRadius: 8, fontWeight: 500 };
+          : {
+              background: C.panel,
+              color: C.text,
+              border: `1px solid ${C.text}`,
+              borderRadius: 8,
+              fontWeight: 500,
+            };
   return (
     <button
       type={type ?? (onClick ? 'button' : 'submit')}
@@ -164,7 +171,10 @@ export function Card({
   actions?: ReactNode;
 }) {
   return (
-    <section className="fp-card" style={{ padding: '1.4rem 1.6rem', marginBottom: '1.25rem', borderRadius: 14 }}>
+    <section
+      className="fp-card"
+      style={{ padding: '1.4rem 1.6rem', marginBottom: '1.25rem', borderRadius: 14 }}
+    >
       {(title || actions) && (
         <div
           style={{
@@ -176,7 +186,9 @@ export function Card({
             gap: 12,
           }}
         >
-          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: C.text }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 600, color: C.text }}>
+            {title}
+          </h3>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             {actions}
           </div>
@@ -198,7 +210,15 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 
 export function Row({ children, gap = 12 }: { children: ReactNode; gap?: number }) {
   return (
-    <div style={{ display: 'flex', gap, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '1rem' }}>
+    <div
+      style={{
+        display: 'flex',
+        gap,
+        flexWrap: 'wrap',
+        alignItems: 'flex-end',
+        marginBottom: '1rem',
+      }}
+    >
       {children}
     </div>
   );
@@ -319,6 +339,16 @@ export function Badge({ value }: { value: string }) {
 }
 
 export function Err({ error }: { error: unknown }) {
+  const toast = useOptionalToast();
+  // API failures are announced once, centrally, by lib/api's onApiError. What
+  // reaches here and is NOT a RequestError is a client-side problem (a failed
+  // file read, a thrown validation), which nothing else would surface — so
+  // this is where those become visible app-wide.
+  useEffect(() => {
+    if (!error || error instanceof RequestError) return;
+    toast?.error(error);
+  }, [error, toast]);
+
   if (!error) return null;
   const msg =
     error instanceof RequestError
