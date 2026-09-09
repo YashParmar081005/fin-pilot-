@@ -26,6 +26,12 @@ export const partyController = {
     ok(res, { party: dto((await partyService.get(String(req.params.id))) as never) });
   },
 
+  /** Everything behind this party's balance — their statement of account. */
+  async statement(req: Request, res: Response) {
+    const result = await partyService.statement(String(req.params.id));
+    ok(res, { ...result, party: dto(result.party as never) });
+  },
+
   async update(req: Request, res: Response) {
     const party = await partyService.update(String(req.params.id), req.body as UpdatePartyInput);
     ok(res, { party: dto(party as never) });

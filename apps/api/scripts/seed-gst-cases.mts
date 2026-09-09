@@ -20,6 +20,8 @@ import { gstinCheckDigit } from '@finpilot/shared';
 const API = process.env.API_URL ?? 'http://localhost:4000';
 const EMAIL = process.env.SEED_EMAIL ?? 'owner@finpilot.demo';
 const PASSWORD = process.env.SEED_PASSWORD ?? 'finpilot-demo-password1';
+/** Which company to fill. Any company the signed-in user can reach. */
+const COMPANY = process.env.SEED_COMPANY ?? 'Sunrise Traders Pvt Ltd';
 /** A month of its own, so these are the only figures in the return. */
 const PERIOD_MONTH = 10;
 
@@ -93,7 +95,7 @@ async function main(): Promise<void> {
     'GET',
     '/api/v1/companies',
   );
-  const company = comps.companies.find((c) => c.legalName === 'Sunrise Traders Pvt Ltd');
+  const company = comps.companies.find((c) => c.legalName === COMPANY);
   if (!company) {
     console.error('Run `pnpm --filter @finpilot/api seed:demo` first.');
     process.exitCode = 1;

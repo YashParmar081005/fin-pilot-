@@ -31,6 +31,11 @@ partyRoutes.post(
   asyncHandler(partyController.import),
 );
 partyRoutes.get('/:id', authorize('report:read'), asyncHandler(partyController.get));
+partyRoutes.get(
+  '/:id/statement',
+  authorize('report:read'),
+  asyncHandler(partyController.statement),
+);
 partyRoutes.patch(
   '/:id',
   authorize('invoice:create'),

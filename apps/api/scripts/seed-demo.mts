@@ -17,6 +17,8 @@ import { makeTextLayerPdf, makeTextPng } from '../tests/helpers/ocrFixtures';
 const API = process.env.API_URL ?? 'http://localhost:4000';
 const EMAIL = process.env.SEED_EMAIL ?? 'owner@finpilot.demo';
 const PASSWORD = process.env.SEED_PASSWORD ?? 'finpilot-demo-password1';
+/** Which company to fill. Any company the signed-in user can reach. */
+const COMPANY = process.env.SEED_COMPANY ?? 'Sunrise Traders Pvt Ltd';
 
 let token: string | null = null;
 let companyId: string | null = null;
@@ -132,16 +134,18 @@ async function main(): Promise<void> {
   const existing = await step('list companies', () =>
     req<{ companies: { id: string; legalName: string }[] }>('GET', '/api/v1/companies'),
   );
-  const already = existing?.companies.find((c) => c.legalName === 'Sunrise Traders Pvt Ltd');
+  const already = existing?.companies.find((c) => c.legalName === COMPANY);
   if (already) {
     companyId = already.id;
-    console.log('  \x1b[2m•\x1b[0m reusing the existing demo company');
+    console.log(`  \x1b[2m•\x1b[0m filling the existing company "${COMPANY}"`);
   } else {
-    const company = await step('create company (Gujarat, state 24)', () =>
+    const company = await step(`create company "${COMPANY}" (Gujarat, state 24)`, () =>
       req<{ company: { id: string } }>('POST', '/api/v1/companies', {
-        legalName: 'Sunrise Traders Pvt Ltd',
+        legalName: COMPANY,
         stateCode: '24',
-        gstin: '24AAPFU0939F1Z1',
+        // Only the demo company takes the demo GSTIN — two companies cannot
+        // share one, so a differently named company is created without it.
+        ...(COMPANY === 'Sunrise Traders Pvt Ltd' ? { gstin: '24AAPFU0939F1Z1' } : {}),
         booksBeginDate: '2026-04-01',
       }),
     );
