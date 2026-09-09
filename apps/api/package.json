@@ -12,6 +12,8 @@
     "dummy:docs": "tsx scripts/make-dummy-docs.mts",
     "dummy:verify": "tsx scripts/verify-dummy-ocr.mts",
     "dummy:verify:statement": "tsx scripts/verify-statement-scan.mts",
+    "gst:cases": "tsx scripts/seed-gst-cases.mts",
+    "gst:verify": "tsx scripts/verify-gst.mts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

@@ -28,6 +28,19 @@ actually produced, not predictions.
 | `invoice-01-digital.pdf`         | text-layer | A sales invoice with an inter-state (IGST) customer. All fields at 99%.                                 |
 | `invoice-02-scanned.pdf`         | vision     | The same invoice scanned, forcing the OCR tier.                                                         |
 
+## GST — Compliance → GST & IMS
+
+A whole month of varied GST cases (mixed rates on one invoice, a 40% slab with
+cess, a discounted line, B2C intra and inter-state, and a deliberately
+ITC-ineligible bill) sits in period **2026-10** and nothing else writes there,
+so GSTR-1 and GSTR-3B for that month can be added up by hand.
+**[gst-checks.md](gst-checks.md)** has the expected figures and the arithmetic.
+
+```bash
+pnpm --filter @finpilot/api gst:cases     # seed the month
+pnpm --filter @finpilot/api gst:verify    # print both returns
+```
+
 ## Bank statements — Money → Banking & reco
 
 **Scan a statement** takes a PDF or a photo, reads the rows, and puts them in
