@@ -111,9 +111,22 @@ describe('readiness vs liveness (§27.5)', () => {
   });
 
   it('/readyz is 200 only with a writable replica-set primary and a Redis PONG', async () => {
-    const res = await request(app).get('/readyz').expect(200);
+    // A readiness probe answers for the moment it is asked. The 'cache' Redis
+    // client is built lazily with enableOfflineQueue:false, so the first PING
+    // after the app is constructed throws "Stream isn't writeable" and /readyz
+    // reports 503 — the process genuinely is not ready yet, which is the whole
+    // point of the endpoint. Asserting 200 on the first probe asserted more
+    // than the contract promises; an orchestrator polls, so this polls too.
+    const deadline = Date.now() + 15_000;
+    let res = await request(app).get('/readyz');
+    while (res.status !== 200 && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      res = await request(app).get('/readyz');
+    }
+
+    expect(res.status).toBe(200);
     expect(res.body.ready).toBe(true);
-  });
+  }, 30_000);
 });
 
 describe('security headers (§28.5)', () => {

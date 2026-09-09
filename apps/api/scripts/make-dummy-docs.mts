@@ -230,11 +230,7 @@ write(
   makeScannedPdf(bankStatementScan),
   'The same statement with no text layer - forces Tesseract.',
 );
-write(
-  'statement-03-photo.jpg',
-  makeTextJpeg(bankStatementScan),
-  'A photograph of the statement.',
-);
+write('statement-03-photo.jpg', makeTextJpeg(bankStatementScan), 'A photograph of the statement.');
 
 const statementPdf = [
   'HDFC Bank — Current Account XX1234',
