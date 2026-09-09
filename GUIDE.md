@@ -2,6 +2,10 @@
 
 How to run the software and use every feature, in the order a real business would.
 
+> For the shorter version — which section does what, and how a transaction moves
+> between them with real ledger entries — see
+> [docs/how-it-works.md](docs/how-it-works.md).
+
 ---
 
 ## 1. Start the software (development)

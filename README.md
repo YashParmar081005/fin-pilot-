@@ -129,7 +129,15 @@ pnpm dev                # api :4000 + worker + web :5173
 ```
 
 Verify: `curl localhost:4000/healthz` → 200 · `curl localhost:4000/readyz` →
-`{"ready":true}` · Mailhog UI :8025. Then follow **[GUIDE.md](GUIDE.md)**.
+`{"ready":true}` · Mailhog UI :8025.
+
+Then: **[docs/how-it-works.md](docs/how-it-works.md)** maps every section to what it
+does and traces a transaction through the ledger with real figures;
+**[GUIDE.md](GUIDE.md)** is the click-by-click tutorial. Sample bills, invoices and
+statements for testing OCR are in **[docs/dummy](docs/dummy/README.md)**.
+
+No Docker? `scripts/start-local-stack.ps1` brings up Mongo (as a replica set) and
+Redis without it, and `pnpm --filter @finpilot/api seed:demo` fills the books.
 
 Optional observability stack: `docker compose -f docker-compose.observability.yml up -d`
 (Prometheus :9090, Grafana :3001).
