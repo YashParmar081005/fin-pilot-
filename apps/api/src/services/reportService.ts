@@ -121,6 +121,46 @@ export const reportService = {
         `net,,Net Profit,${pnl.netProfitPaise}`,
       ].join('\n');
     }
+    if (type === 'balance-sheet') {
+      const bs = await this.balanceSheet(asOf);
+      const section = (
+        name: string,
+        rows: { code: string; name: string; balancePaise: number }[],
+      ) => rows.map((r) => `${name},${r.code},"${r.name}",${r.balancePaise}`);
+      return [
+        'section,code,name,balancePaise',
+        ...section('asset', bs.assets),
+        ...section('liability', bs.liabilities),
+        ...section('equity', bs.equity),
+        `equity,,Retained Earnings,${bs.retainedEarningsPaise}`,
+        `total,,Total Assets,${bs.totalAssetsPaise}`,
+        `total,,Total Liabilities,${bs.totalLiabilitiesPaise}`,
+        `total,,Total Equity,${bs.totalEquityPaise}`,
+      ].join('\n');
+    }
+    if (type === 'cash-flow') {
+      const cf = await this.cashFlow(asOf);
+      return [
+        'line,amountPaise',
+        `Net profit,${cf.netProfitPaise}`,
+        `Increase in receivables,${cf.increaseInReceivablesPaise}`,
+        `Increase in payables,${cf.increaseInPayablesPaise}`,
+        `Net cash from operations,${cf.netCashFromOperationsPaise}`,
+      ].join('\n');
+    }
+    if (type === 'aged-receivables' || type === 'aged-payables') {
+      const aged =
+        type === 'aged-receivables'
+          ? await this.agedReceivables(asOf)
+          : await this.agedPayables(asOf);
+      return [
+        'number,party,duePaise,daysOverdue,bucket',
+        ...aged.rows.map(
+          (r) => `"${r.number}","${r.party}",${r.duePaise},${r.daysOverdue},${r.bucket}`,
+        ),
+        `TOTAL,,${aged.totalPaise},,`,
+      ].join('\n');
+    }
     throw new Error(`unknown export type: ${type}`);
   },
 };

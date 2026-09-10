@@ -65,6 +65,8 @@ export const companyService = {
       stateCode: input.stateCode,
       address: input.address,
       financialYearStartMonth: input.financialYearStartMonth,
+      // Drives the §14.3 six-digit HSN rule and the e-invoicing threshold.
+      aggregateTurnoverPaise: input.aggregateTurnoverPaise,
       booksBeginDate: input.booksBeginDate,
     });
 

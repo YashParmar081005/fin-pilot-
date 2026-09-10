@@ -263,4 +263,51 @@ describe('exports via the queue (§32)', () => {
     expect(download.text).toContain('code,name,type');
     expect(download.text).toContain('4100'); // sales row present
   }, 60_000);
+
+  /**
+   * The Reports screen offers six reports behind ONE Export CSV button, but
+   * exportCsv only knew trial-balance and profit-loss — the other four threw
+   * "unknown export type" and the job failed, with the UI showing nothing
+   * more than "export failed". Every offered report must export.
+   */
+  it('exports every report the UI offers, not just the two that were implemented', async (ctx) => {
+    if (!redisUp) return ctx.skip();
+    const worker = createWorker(QUEUES.REPORT_EXPORT, async (job) =>
+      processReportExport(JobSchemas[QUEUES.REPORT_EXPORT].parse(job.data)),
+    );
+    const events = getQueueEvents(QUEUES.REPORT_EXPORT);
+    await events.waitUntilReady();
+    cleanups.push(async () => {
+      await worker.close();
+      await events.close();
+      await getQueue(QUEUES.REPORT_EXPORT).obliterate({ force: true });
+    });
+
+    const types = [
+      { type: 'trial-balance', header: 'code,name,type' },
+      { type: 'profit-loss', header: 'section,code,name' },
+      { type: 'balance-sheet', header: 'section,code,name' },
+      { type: 'cash-flow', header: 'line,amountPaise' },
+      { type: 'aged-receivables', header: 'number,party,duePaise' },
+      { type: 'aged-payables', header: 'number,party,duePaise' },
+    ];
+
+    for (const { type, header } of types) {
+      const queued = await request(app)
+        .post(`/api/v1/reports/${type}/export${AS_OF}`)
+        .set(auth())
+        .expect(202);
+      const jobId = queued.body.data.jobId;
+
+      const bullJob = await getQueue(QUEUES.REPORT_EXPORT).getJob(`report-${jobId}`);
+      await bullJob!.waitUntilFinished(events, 30_000);
+
+      const status = (await request(app).get(`/api/v1/jobs/${jobId}`).set(auth()).expect(200)).body
+        .data;
+      expect(status.status, `${type} export job`).toBe('completed');
+
+      const csv = await request(app).get(`/api/v1/jobs/${jobId}/download`).set(auth()).expect(200);
+      expect(csv.text.split('\n')[0], `${type} header`).toContain(header);
+    }
+  }, 120_000);
 });

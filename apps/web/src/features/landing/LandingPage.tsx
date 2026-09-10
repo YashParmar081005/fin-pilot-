@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { applyTheme, initTheme } from '../../lib/ui';
 import { HugeiconsIcon } from '@hugeicons/react';
 import type { IconSvgElement } from '@hugeicons/react';
 import {
@@ -35,17 +36,22 @@ import {
 
 type Theme = 'light' | 'dark';
 
+/**
+ * Shares the app's theme rather than keeping its own.
+ *
+ * This used to read and write `finpilot-theme` while the rest of the app uses
+ * `fp-theme`, so the two disagreed: choosing dark here was forgotten on the
+ * way in, choosing dark inside was forgotten on the way back, and because
+ * main.tsx runs initTheme() before render, this effect then overwrote the
+ * app's own choice on every landing page load.
+ */
 function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === 'undefined') return 'light';
-    const stored = window.localStorage.getItem('finpilot-theme') as Theme | null;
-    if (stored) return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+  const [theme, setTheme] = useState<Theme>(
+    () => (document.documentElement.dataset.theme as Theme | undefined) ?? initTheme(),
+  );
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    window.localStorage.setItem('finpilot-theme', theme);
+    applyTheme(theme);
   }, [theme]);
 
   return { theme, toggleTheme: () => setTheme((t) => (t === 'light' ? 'dark' : 'light')) };

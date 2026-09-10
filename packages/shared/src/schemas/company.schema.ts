@@ -50,6 +50,14 @@ export const createCompanySchema = z.object({
   stateCode,
   address: addressSchema.optional(),
   financialYearStartMonth: z.number().int().min(1).max(12).default(4),
+  /**
+   * Previous financial year's aggregate turnover. Two GST rules read it and
+   * both were dormant while it could not be set: HSN codes must be 6 digits
+   * above Rs 5 crore (14.3), and e-invoicing applies above Rs 10 crore.
+   * Left at 0 those thresholds never fire, so a business that is legally
+   * required to use 6-digit HSN could save 4-digit codes unchallenged.
+   */
+  aggregateTurnoverPaise: z.number().int().min(0).default(0),
   booksBeginDate: z.coerce.date(),
 });
 
