@@ -13,6 +13,8 @@ import { membershipRepo } from '../repositories/membershipRepo';
 import { organizationRepo } from '../repositories/organizationRepo';
 import { roleRepo } from '../repositories/roleRepo';
 import { AppError } from '../utils/AppError';
+import { requestContext } from '../plugins/tenantScope';
+import { accountService } from './accountService';
 import { permissionCache } from './permissionCache';
 
 function slugify(name: string): string {
@@ -79,6 +81,16 @@ export const companyService = {
       acceptedAt: new Date(),
     });
     await permissionCache.invalidate(userId, String(company._id));
+
+    // A company with no chart of accounts is a dead end: it cannot take a bank
+    // account (1120 missing), an invoice or a bill, and the only clue is a
+    // LEDGER_ACCOUNT_INACTIVE from whichever screen the user tried first.
+    // Every company needs this chart and the template is the only one on
+    // offer, so seed it now rather than making it a step people can miss.
+    // seedTemplate() skips codes that already exist, so seeding again is safe.
+    await requestContext.run({ companyId: company._id, userId: ownerId }, () =>
+      accountService.seedTemplate(),
+    );
 
     return company;
   },

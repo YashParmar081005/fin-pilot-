@@ -5,7 +5,19 @@
  * dashboard reads the same tool APIs directly).
  */
 import { api, qs } from '../../lib/api';
-import { Badge, Btn, C, Card, Err, Money, Tbl, dateStr, thisMonth, useLoad } from '../../lib/ui';
+import {
+  Badge,
+  Btn,
+  C,
+  Card,
+  Err,
+  Money,
+  Row,
+  Tbl,
+  dateStr,
+  thisMonth,
+  useLoad,
+} from '../../lib/ui';
 import { CashBandChart, FlowMirrorChart, HealthGauge, compactINR } from './charts';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
@@ -68,6 +80,11 @@ interface InvoiceRow {
 }
 interface BillRow {
   status: string;
+}
+interface PaymentRow {
+  date: string;
+  direction: 'inflow' | 'outflow';
+  amountPaise: number;
 }
 interface Billing {
   plan: string;
@@ -172,6 +189,7 @@ export function DashboardPage() {
   const bills = useLoad(() => api<{ bills: BillRow[] }>('GET', '/api/v1/bills'));
   const expenses = useLoad(() => api<{ expenses: BillRow[] }>('GET', '/api/v1/expenses'));
   const billing = useLoad(() => api<Billing>('GET', '/api/v1/billing'));
+  const payments = useLoad(() => api<{ payments: PaymentRow[] }>('GET', '/api/v1/payments'));
   const ims = useLoad(() =>
     api<{ records: ImsRecord[] }>('GET', `/api/v1/gst/ims${qs({ period: thisMonth() })}`).catch(
       () => ({ records: [] }),
@@ -179,6 +197,30 @@ export function DashboardPage() {
   );
 
   const weekLabels = (cash.data?.weeks ?? []).map((_, i) => `W${i + 1}`);
+
+  // Actual cash movement, from recorded payments. The chart above it is a
+  // FORECAST of what is due; this is what has really moved, month by month.
+  const flow = (() => {
+    const months = new Map<string, { in: number; out: number }>();
+    for (const p of payments.data?.payments ?? []) {
+      const key = String(p.date).slice(0, 7); // YYYY-MM
+      const row = months.get(key) ?? { in: 0, out: 0 };
+      if (p.direction === 'inflow') row.in += p.amountPaise;
+      else row.out += p.amountPaise;
+      months.set(key, row);
+    }
+    const keys = [...months.keys()].sort();
+    return {
+      labels: keys.map((k) => {
+        const [y, m] = k.split('-');
+        return `${['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m)]} ${y!.slice(2)}`;
+      }),
+      inflow: keys.map((k) => months.get(k)!.in),
+      outflow: keys.map((k) => months.get(k)!.out),
+      totalIn: [...months.values()].reduce((t, r) => t + r.in, 0),
+      totalOut: [...months.values()].reduce((t, r) => t + r.out, 0),
+    };
+  })();
   // `status === 'overdue'` is stamped by a nightly cron, so between the due
   // date and that tick an invoice is past due while still labelled "issued" —
   // the tile said "nothing overdue" while the health score read 100% overdue.
@@ -193,8 +235,11 @@ export function DashboardPage() {
   const overdue = (invoices.data?.invoices ?? []).filter(isOverdue);
   const overduePaise = overdue.reduce((s, i) => s + i.amountDuePaise, 0);
   const pendingApprovals =
-    (bills.data?.bills ?? []).filter((b) => b.status === 'pending_approval').length +
-    (expenses.data?.expenses ?? []).filter((x) => x.status === 'pending_approval').length;
+    // Bills sit at `draft` and expense claims at `submitted` until someone
+    // approves them; neither is ever `pending_approval`, so this panel used
+    // to stay silent while real approvals piled up.
+    (bills.data?.bills ?? []).filter((b) => b.status === 'draft').length +
+    (expenses.data?.expenses ?? []).filter((x) => x.status === 'submitted').length;
   const imsUnactioned = (ims.data?.records ?? []).filter((r) => r.action === 'no_action').length;
   const recent = (invoices.data?.invoices ?? []).slice(0, 5);
 
@@ -343,7 +388,35 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      {/* flows + quick actions */}
+      {/* actual cash movement gets its own row — squeezing it beside the
+          forecast left both charts too narrow to read */}
+      <div style={{ marginTop: 20 }}>
+        <Card title="Money in and out — what has actually moved">
+          <Err error={payments.error} />
+          <Row>
+            <span style={{ fontSize: '0.9rem' }}>
+              In <b style={{ color: C.green }}>{compactINR(flow.totalIn)}</b>
+              {'  ·  '}
+              Out <b style={{ color: C.red }}>{compactINR(flow.totalOut)}</b>
+              {'  ·  '}
+              Net{' '}
+              <b style={{ color: flow.totalIn - flow.totalOut >= 0 ? C.green : C.red }}>
+                {compactINR(flow.totalIn - flow.totalOut)}
+              </b>
+            </span>
+          </Row>
+          {flow.labels.length > 0 ? (
+            <FlowMirrorChart labels={flow.labels} inflow={flow.inflow} outflow={flow.outflow} />
+          ) : (
+            <p style={{ color: C.muted, fontSize: '0.85rem' }}>
+              No payments recorded yet — money moves once you record a receipt or a payment under
+              Money → Payments.
+            </p>
+          )}
+        </Card>
+      </div>
+
+      {/* forecast + quick actions */}
       <div
         style={{
           display: 'grid',
@@ -352,7 +425,7 @@ export function DashboardPage() {
           marginTop: 20,
         }}
       >
-        <Card title="Money due in vs out, by week">
+        <Card title="Money due in vs out, by week (forecast)">
           <Err error={cash.error} />
           {cash.data && (
             <FlowMirrorChart

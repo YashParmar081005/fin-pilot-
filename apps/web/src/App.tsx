@@ -475,7 +475,11 @@ function AuthPage({
         </div>
         <div className="auth-card">
           <div
-            style={{ marginBottom: 32, cursor: onBack ? 'pointer' : 'default', display: 'inline-block' }}
+            style={{
+              marginBottom: 32,
+              cursor: onBack ? 'pointer' : 'default',
+              display: 'inline-block',
+            }}
             onClick={onBack}
             title={onBack ? 'Back to home' : undefined}
           >
@@ -1122,6 +1126,51 @@ function NavItem({
   );
 }
 
+/**
+ * Every module posts into the chart of accounts, so a company without one is a
+ * dead end: adding a bank account fails on a missing 1120, approving a bill on
+ * a missing 5110, and the only clue is a LEDGER_ACCOUNT_INACTIVE from whichever
+ * screen was tried first. New companies are seeded at creation; this catches
+ * the ones made before that, and offers the fix where the user already is
+ * rather than sending them to find a screen.
+ */
+function ChartOfAccountsSetup() {
+  const accounts = useLoad(() => api<{ accounts: AccountRow[] }>('GET', '/api/v1/accounts'));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+
+  if (accounts.busy || accounts.error || (accounts.data?.accounts.length ?? 0) > 0) return null;
+
+  async function seed() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api('POST', '/api/v1/accounts/import-template');
+      accounts.reload();
+    } catch (err) {
+      setError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card title="Finish setting up this company">
+      <p style={{ color: C.muted, fontSize: '0.88rem', marginTop: 0 }}>
+        This company has no chart of accounts yet, so nothing can be posted — invoices, bills,
+        payments and bank accounts all need somewhere to land. Seeding the Indian SME chart takes
+        one click and is the only setup step.
+      </p>
+      <Row>
+        <Btn onClick={() => void seed()} disabled={busy}>
+          {busy ? 'Seeding…' : 'Seed the 60-account Indian SME chart'}
+        </Btn>
+      </Row>
+      <Err error={error} />
+    </Card>
+  );
+}
+
 function Shell({
   user,
   company,
@@ -1377,6 +1426,7 @@ function Shell({
             animation: 'fp-fade-in 0.25s ease',
           }}
         >
+          <ChartOfAccountsSetup />
           {PAGES[route] ?? <DashboardPage />}
         </main>
       </div>

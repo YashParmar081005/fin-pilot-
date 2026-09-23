@@ -59,12 +59,16 @@ afterAll(async () => {
 
 describe('the Indian SME COA seed', () => {
   it('seeds exactly 60 system-flagged accounts', async () => {
-    const res = await request(app).post('/api/v1/accounts/import-template').set(auth()).expect(201);
-    expect(res.body.data.created).toBe(60);
-
+    // The chart is seeded when the company is created, so the 60 are already
+    // there before anyone asks for them and import-template finds nothing to
+    // add. Same contract as before, observed one step earlier.
     const accounts = await listAccounts();
     expect(accounts).toHaveLength(60);
     expect(accounts.every((a) => a.isSystem)).toBe(true);
+
+    const res = await request(app).post('/api/v1/accounts/import-template').set(auth()).expect(201);
+    expect(res.body.data.created).toBe(0);
+    expect(res.body.data.existing).toBe(60);
   });
 
   it('re-seeding is idempotent — still 60', async () => {
@@ -238,7 +242,9 @@ describe('validation and tenancy', () => {
       .send({ legalName: 'Other Co', stateCode: '27', booksBeginDate: '2026-04-01' })
       .expect(201);
 
-    // their own book is empty…
+    // their own book holds their own seeded chart and nothing of ours: exactly
+    // the 60 template accounts, none of the custom codes we added above, and
+    // not one shared row id.
     const theirs = await request(app)
       .get('/api/v1/accounts')
       .set({
@@ -246,7 +252,13 @@ describe('validation and tenancy', () => {
         'X-Company-Id': other.body.data.company.id,
       })
       .expect(200);
-    expect(theirs.body.data.accounts).toHaveLength(0);
+    const theirAccounts = theirs.body.data.accounts as AccountDto[];
+    expect(theirAccounts).toHaveLength(60);
+
+    const ours = await listAccounts();
+    const theirIds = new Set(theirAccounts.map((a) => a.id));
+    expect(ours.some((a) => theirIds.has(a.id))).toBe(false);
+    expect(theirAccounts.some((a) => a.code === '7100')).toBe(false);
 
     // …and pointing X-Company-Id at OUR company is rejected outright
     const res = await request(app)

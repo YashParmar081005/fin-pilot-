@@ -303,7 +303,7 @@ const BADGE_COLORS: Record<string, string> = {
   posted: C.green,
   reversed: C.amber,
   approved: C.green,
-  pending_approval: C.amber,
+  submitted: C.amber,
   rejected: C.red,
   active: C.green,
   accept: C.green,

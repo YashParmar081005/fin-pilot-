@@ -28,6 +28,7 @@ interface BillRow {
   billDate: string;
   status: string;
   grandTotalPaise: number;
+  amountPaidPaise: number;
   itcEligiblePaise?: number;
 }
 interface ExpenseRow {
@@ -261,13 +262,20 @@ export function BillsPage() {
             dateStr(b.billDate),
             <Badge key="s" value={b.status} />,
             <Money key="t" paise={b.grandTotalPaise} />,
+            // A bill is born `draft` and approving is what posts it. These
+            // buttons used to test for `pending_approval`, which the Bill
+            // model has never had — so the column rendered empty and a bill
+            // could not be approved from the UI at all, leaving payables at
+            // zero however many bills were recorded.
             <span key="a" style={{ display: 'flex', gap: 6 }}>
-              {b.status === 'pending_approval' && (
+              {b.status === 'draft' && (
                 <Btn small kind="success" onClick={() => void act('bills', b.id, 'approve')}>
                   Approve
                 </Btn>
               )}
-              {(b.status === 'pending_approval' || b.status === 'approved') && (
+              {/* The server cancels by REVERSING the posting, so only an
+                  approved bill can be cancelled, and never once part-paid. */}
+              {b.status === 'approved' && b.amountPaidPaise === 0 && (
                 <Btn
                   small
                   kind="danger"
@@ -290,8 +298,9 @@ export function BillsPage() {
             x.description,
             <Money key="m" paise={x.amountPaise} />,
             <Badge key="s" value={x.status} />,
+            // An expense claim is `submitted`, never `pending_approval`.
             <span key="a" style={{ display: 'flex', gap: 6 }}>
-              {x.status === 'pending_approval' && (
+              {x.status === 'submitted' && (
                 <>
                   <Btn small kind="success" onClick={() => void act('expenses', x.id, 'approve')}>
                     Approve
