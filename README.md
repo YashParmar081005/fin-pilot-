@@ -10,6 +10,7 @@ first and answers the second — with a correctness guarantee.
 - 📚 **[GUIDE.md](GUIDE.md)** — end-to-end user guide (start here to use the app)
 - 📐 **[plan.md](plan.md)** — the full build specification (single source of truth)
 - ⚖️ **[CLAUDE.md](CLAUDE.md)** — the ten non-negotiable invariants
+- 🏗️ **[docs/architecture.md](docs/architecture.md)** — how the system is built: processes, layers, and where each invariant is enforced
 - 🧭 **[docs/runbooks/](docs/runbooks/)** — operations: alerts, restore drill, launch checklist
 
 ---
@@ -133,6 +134,7 @@ Verify: `curl localhost:4000/healthz` → 200 · `curl localhost:4000/readyz` �
 
 Then: **[docs/how-it-works.md](docs/how-it-works.md)** maps every section to what it
 does and traces a transaction through the ledger with real figures;
+**[docs/architecture.md](docs/architecture.md)** is the same system seen from the code side;
 **[GUIDE.md](GUIDE.md)** is the click-by-click tutorial. Sample bills, invoices and
 statements for testing OCR are in **[docs/dummy](docs/dummy/README.md)**.
 
