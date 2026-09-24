@@ -254,7 +254,8 @@ to post it. That asymmetry is what makes a new document type cheap to add.
 
 ## 7. Data model
 
-33 collections. Grouped by what they are for:
+33 collections. Grouped by what they are for — the keys and every foreign
+key between them are in [er-diagram.md](./er-diagram.md):
 
 - **Tenancy & identity** — `Organization`, `Company`, `User`, `Membership`, `Role`, `Session`, `VerificationToken`
 - **The books** — `Account` (chart of accounts), `JournalEntry` (append-only), `Counter`

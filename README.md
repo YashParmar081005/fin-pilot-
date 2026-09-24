@@ -12,6 +12,7 @@ first and answers the second — with a correctness guarantee.
 - ⚖️ **[CLAUDE.md](CLAUDE.md)** — the ten non-negotiable invariants
 - 🏗️ **[docs/architecture.md](docs/architecture.md)** — how the system is built: processes, layers, and where each invariant is enforced
 - 📊 **[docs/FinPilot-Architecture.pptx](docs/FinPilot-Architecture.pptx)** — the same material as a 12-slide deck
+- 🗃️ **[docs/er-diagram.md](docs/er-diagram.md)** — the 33 collections, their keys and every foreign key
 - 🧭 **[docs/runbooks/](docs/runbooks/)** — operations: alerts, restore drill, launch checklist
 
 ---
