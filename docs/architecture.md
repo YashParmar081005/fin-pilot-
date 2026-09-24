@@ -107,13 +107,16 @@ cannot drift between them.
 
 ## 3. The layer cake
 
-Every request crosses the same six layers, in the same direction, and layers
-never skip.
+Every request crosses the same layers in the same direction. The one that is
+optional is the controller: six of the eighteen route modules delegate to a
+controller file, and the other twelve keep the handler inline in the router.
+Either way the handler only parses and shapes — the rules and the transaction
+are in the service.
 
 ```mermaid
 flowchart LR
     R["route<br/><i>what exists</i>"] --> M["middleware<br/><i>who, where, how often</i>"]
-    M --> C["controller<br/><i>parse + shape</i>"]
+    M --> C["handler<br/><i>controller file,<br/>or inline in the router</i>"]
     C --> S["service<br/><i>rules + transaction</i>"]
     S --> E["engine<br/><i>ledger · gst · forecast</i>"]
     S --> P["repository<br/><i>data access</i>"]
@@ -121,9 +124,14 @@ flowchart LR
     P --> D[("model / MongoDB")]
 ```
 
+The seven controller files are `auth`, `company`, `account`, `journal`,
+`invoice`, `party` and `item`. Banking, bills, expenses, payments, gst, reports,
+documents, ai, admin, billing, notifications, reconciliation and forecast are
+handled in their routers.
+
 The rules that make it worth having:
 
-- A **controller** never opens a transaction and never contains a business rule.
+- A **handler** never opens a transaction and never contains a business rule.
 - A **service** is the only thing that opens a `ClientSession`. Every write method
   takes one, so several services can be composed into a single atomic posting.
 - A **repository** holds no business logic — it is the seam that keeps Mongoose

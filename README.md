@@ -11,6 +11,7 @@ first and answers the second — with a correctness guarantee.
 - 📐 **[plan.md](plan.md)** — the full build specification (single source of truth)
 - ⚖️ **[CLAUDE.md](CLAUDE.md)** — the ten non-negotiable invariants
 - 🏗️ **[docs/architecture.md](docs/architecture.md)** — how the system is built: processes, layers, and where each invariant is enforced
+- 📊 **[docs/FinPilot-Architecture.pptx](docs/FinPilot-Architecture.pptx)** — the same material as a 12-slide deck
 - 🧭 **[docs/runbooks/](docs/runbooks/)** — operations: alerts, restore drill, launch checklist
 
 ---
