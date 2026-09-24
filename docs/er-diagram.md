@@ -15,7 +15,7 @@ what each screen does, [how-it-works.md](./how-it-works.md).
 compound index.** It is omitted from the per-domain diagrams below only to keep
 them readable — assume it on every entity except the seven listed as
 organization- or user-scoped (`Organization`, `User`, `Role`, `Membership`,
-`Session`, `VerificationToken`, `Subscription`) and the three global ones
+`Session`, `VerificationToken`, `Subscription`) and the four global ones
 (`IdempotencyKey`, `DeadLetter`, `AdminAudit`, `ImpersonationSession`).
 
 **Every money-moving document points at exactly one `JournalEntry`.** Invoice,
