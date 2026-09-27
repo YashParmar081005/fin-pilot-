@@ -4,7 +4,7 @@
  * server-side). Write tools land in the proposal inbox below: the human sees
  * the payload and clicks Confirm — the server recomputes everything (I10/I5).
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, sse } from '../../lib/api';
 import { Badge, Btn, C, Card, Err, Row, S, Tbl, dateStr, useLoad } from '../../lib/ui';
 
@@ -13,6 +13,12 @@ interface ChatMessage {
   content: string;
   tools: string[];
   fallback?: boolean;
+}
+interface Conversation {
+  id: string;
+  title: string;
+  messageCount: number;
+  updatedAt: string;
 }
 interface Proposal {
   id: string;
@@ -31,6 +37,9 @@ export function CopilotPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const usage = useLoad(() => api<{ tokensUsed: number }>('GET', '/api/v1/ai/usage'));
+  const history = useLoad(() =>
+    api<{ conversations: Conversation[] }>('GET', '/api/v1/ai/conversations'),
+  );
   const proposals = useLoad(() => api<{ proposals: Proposal[] }>('GET', '/api/v1/ai/proposals'));
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -70,11 +79,45 @@ export function CopilotPage() {
       });
       usage.reload();
       proposals.reload();
+      history.reload();
     } catch (err) {
       setError(err);
     } finally {
       setBusy(false);
     }
+  }
+
+  async function openConversation(id: string) {
+    setError(null);
+    try {
+      const c = await api<{ messages: { role: 'user' | 'assistant'; content: string }[] }>(
+        'GET',
+        `/api/v1/ai/conversations/${id}`,
+      );
+      setConversationId(id);
+      setMessages(c.messages.map((m) => ({ role: m.role, content: m.content, tools: [] })));
+      scrollRef.current?.scrollTo({ top: 999999 });
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  // Arriving at the page picks up where the last chat left off. The server
+  // already replays the whole thread into every turn, so reopening it restores
+  // the model's context too, not just the transcript.
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current || conversationId) return;
+    const latest = history.data?.conversations[0];
+    if (!latest) return;
+    restored.current = true;
+    void openConversation(latest.id);
+  }, [history.data, conversationId]);
+
+  function newChat() {
+    setConversationId(null);
+    setMessages([]);
+    setError(null);
   }
 
   async function act(id: string, action: 'confirm' | 'reject') {
@@ -95,9 +138,14 @@ export function CopilotPage() {
       <Card
         title="Copilot — ask about your books"
         actions={
-          <span style={{ color: C.muted, fontSize: '0.8rem' }}>
-            {usage.data?.tokensUsed ?? 0} tokens this month
-          </span>
+          <Row>
+            <span style={{ color: C.muted, fontSize: '0.8rem' }}>
+              {usage.data?.tokensUsed ?? 0} tokens this month
+            </span>
+            <Btn small kind="ghost" onClick={newChat} disabled={busy}>
+              New chat
+            </Btn>
+          </Row>
         }
       >
         <div
@@ -154,14 +202,21 @@ export function CopilotPage() {
                 <>
                   {msg.content}
                   {msg.role === 'assistant' && busy && i === messages.length - 1 && (
-                    <span style={{ display: 'inline-block', opacity: 0.8, marginLeft: 2, fontWeight: 'bold' }}>▍</span>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        opacity: 0.8,
+                        marginLeft: 2,
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      ▍
+                    </span>
                   )}
                 </>
-              ) : (
-                msg.role === 'assistant' && busy && i === messages.length - 1 ? (
-                  <span style={{ color: C.muted, fontStyle: 'italic' }}>Thinking…</span>
-                ) : null
-              )}
+              ) : msg.role === 'assistant' && busy && i === messages.length - 1 ? (
+                <span style={{ color: C.muted, fontStyle: 'italic' }}>Thinking…</span>
+              ) : null}
               {msg.fallback && (
                 <div style={{ color: C.amber, fontSize: '0.7rem', marginTop: 4 }}>
                   grounding failed twice — showing verified raw data instead
@@ -184,6 +239,57 @@ export function CopilotPage() {
         </form>
         <Err error={error} />
       </Card>
+
+      {(history.data?.conversations.length ?? 0) > 0 && (
+        <Card title={`Saved chats · ${history.data?.conversations.length ?? 0}`}>
+          <p style={{ color: C.muted, fontSize: '0.8rem', marginTop: 0 }}>
+            Every conversation is kept. Reopening one restores the whole thread, and the Copilot
+            answers the next question with all of it in view.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {(history.data?.conversations ?? []).map((c) => {
+              const active = c.id === conversationId;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => void openConversation(c.id)}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 12,
+                    width: '100%',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    background: active ? C.panel2 : 'transparent',
+                    border: `1px solid ${active ? C.accent : C.border}`,
+                    borderRadius: 8,
+                    padding: '0.5rem 0.75rem',
+                    color: C.text,
+                    font: 'inherit',
+                  }}
+                >
+                  <span
+                    style={{
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      fontSize: '0.88rem',
+                    }}
+                  >
+                    {c.title}
+                  </span>
+                  <span style={{ color: C.muted, fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                    {c.messageCount} message{c.messageCount === 1 ? '' : 's'} ·{' '}
+                    {dateStr(c.updatedAt)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       <Card title={`Proposal inbox — the AI proposes, you confirm (I10) · ${open.length} open`}>
         <Err error={proposals.error} />

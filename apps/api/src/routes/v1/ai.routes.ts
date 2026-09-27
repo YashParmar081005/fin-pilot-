@@ -32,6 +32,53 @@ aiRoutes.post(
   }),
 );
 
+/**
+ * Conversations were being written to the database and then stranded: the UI
+ * held the id in component state only, so a page reload orphaned the thread
+ * and there was no way to list or reopen one. These two reads are what make a
+ * saved chat a saved chat. Both are scoped to the caller's own conversations —
+ * the tenant plugin pins companyId, userId pins the person.
+ */
+aiRoutes.get(
+  '/conversations',
+  asyncHandler(async (_req: Request, res: Response) => {
+    const ctx = requireCompanyContext();
+    const rows = await AiConversation.find({ userId: ctx.userId })
+      .sort({ updatedAt: -1 })
+      .limit(50)
+      .lean();
+    ok(res, {
+      conversations: rows.map((c) => ({
+        id: String(c._id),
+        title: c.title,
+        messageCount: c.messages.length,
+        updatedAt: c.updatedAt,
+      })),
+    });
+  }),
+);
+
+aiRoutes.get(
+  '/conversations/:id',
+  asyncHandler(async (req: Request, res: Response) => {
+    const ctx = requireCompanyContext();
+    const conversation = await AiConversation.findOne({
+      _id: String(req.params.id),
+      userId: ctx.userId,
+    }).lean();
+    if (!conversation) throw new AppError('SYS_NOT_FOUND', 404);
+    ok(res, {
+      id: String(conversation._id),
+      title: conversation.title,
+      // tool rows are the audit trail, not conversation — the UI shows the
+      // tool chips from the live stream instead.
+      messages: conversation.messages
+        .filter((m) => m.role !== 'tool')
+        .map((m) => ({ role: m.role, content: m.content, at: m.at })),
+    });
+  }),
+);
+
 aiRoutes.post(
   '/conversations/:id/messages',
   validate(z.object({ message: z.string().trim().min(1).max(4_000) })),

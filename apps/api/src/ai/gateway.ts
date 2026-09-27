@@ -71,6 +71,12 @@ export async function runCopilotTurn(
     })),
     { role: 'user', content: userMessage },
   ];
+  // The first question names the conversation. Without this every saved chat
+  // reads "New conversation" and the history list is unusable.
+  if (conversation.messages.length === 0) {
+    conversation.title =
+      userMessage.length > 60 ? `${userMessage.slice(0, 57).trimEnd()}…` : userMessage;
+  }
   conversation.messages.push({ role: 'user', content: userMessage, at: new Date() });
 
   const toolResults: Array<{ tool: string; result: unknown }> = [];
