@@ -9,13 +9,14 @@ import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 import { idempotency } from '../../middleware/idempotency';
 import { userRateLimit } from '../../middleware/rateLimit';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 export const invoiceRoutes = Router();
 
-invoiceRoutes.use(authenticate, tenantResolve('header'));
+invoiceRoutes.use(authenticate, tenantResolve('header'), requireModule('sales'));
 
 // §19.3 route costs: GET 1, POST 2 — fails OPEN when Redis is down (§19.6)
 invoiceRoutes.get('/', userRateLimit(1), authorize('report:read'), asyncHandler(ctrl.list));

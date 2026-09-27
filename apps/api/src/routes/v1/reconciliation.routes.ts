@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 import { idempotency } from '../../middleware/idempotency';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { reconciliationService } from '../../services/reconciliationService';
@@ -12,7 +13,12 @@ import { asyncHandler } from '../../utils/asyncHandler';
 import { ok } from '../../utils/respond';
 
 export const reconciliationRoutes = Router();
-reconciliationRoutes.use(authenticate, tenantResolve('header'), authorize('bank:reconcile'));
+reconciliationRoutes.use(
+  authenticate,
+  tenantResolve('header'),
+  authorize('bank:reconcile'),
+  requireModule('money'),
+);
 
 reconciliationRoutes.get(
   '/suggestions',

@@ -27,6 +27,8 @@ export interface CompanyDoc {
   eInvoiceEnabled: boolean;
   aggregateTurnoverPaise: number;
   booksLockedUpto?: Date | null;
+  /** Sections switched off by a platform operator. Empty = everything on. */
+  disabledModules: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +69,7 @@ const CompanySchema = new Schema<CompanyDoc>(
     aggregateTurnoverPaise: { type: Number, default: 0 },
     // period locking (§10.2)
     booksLockedUpto: { type: Date, default: null },
+    disabledModules: { type: [String], default: [] },
   },
   { timestamps: true },
 );

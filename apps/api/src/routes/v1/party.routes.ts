@@ -11,12 +11,13 @@ import { itemController } from '../../controllers/itemController';
 import { partyController } from '../../controllers/partyController';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 export const partyRoutes = Router();
-partyRoutes.use(authenticate, tenantResolve('header'));
+partyRoutes.use(authenticate, tenantResolve('header'), requireModule('parties'));
 partyRoutes.get('/', authorize('report:read'), asyncHandler(partyController.list));
 partyRoutes.post(
   '/',
@@ -45,7 +46,7 @@ partyRoutes.patch(
 partyRoutes.delete('/:id', authorize('invoice:create'), asyncHandler(partyController.remove));
 
 export const itemRoutes = Router();
-itemRoutes.use(authenticate, tenantResolve('header'));
+itemRoutes.use(authenticate, tenantResolve('header'), requireModule('parties'));
 itemRoutes.get('/', authorize('report:read'), asyncHandler(itemController.list));
 itemRoutes.post(
   '/',

@@ -16,7 +16,8 @@
     "gst:verify": "tsx scripts/verify-gst.mts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "admin:grant": "tsx scripts/grant-superadmin.mts"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.8",

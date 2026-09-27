@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 import { idempotency } from '../../middleware/idempotency';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { documentService } from '../../services/documentService';
@@ -16,7 +17,7 @@ function dto(doc: Record<string, unknown>) {
 }
 
 export const documentRoutes = Router();
-documentRoutes.use(authenticate, tenantResolve('header'));
+documentRoutes.use(authenticate, tenantResolve('header'), requireModule('documents'));
 
 documentRoutes.get(
   '/',
@@ -49,7 +50,7 @@ documentRoutes.get(
 );
 
 export const billFromDocumentRoutes = Router();
-billFromDocumentRoutes.use(authenticate, tenantResolve('header'));
+billFromDocumentRoutes.use(authenticate, tenantResolve('header'), requireModule('documents'));
 billFromDocumentRoutes.post(
   '/from-document/:documentId',
   authorize('invoice:create'),

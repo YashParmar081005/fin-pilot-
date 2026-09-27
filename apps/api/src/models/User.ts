@@ -17,6 +17,8 @@ export interface UserDoc {
   recoveryCodeHashes?: string[];
   failedLoginCount: number;
   lockedUntil?: Date | null;
+  /** Set by a platform operator. Distinct from lockedUntil, which is brute-force lockout. */
+  disabledAt?: Date | null;
   lastLoginAt?: Date | null;
   locale: 'en-IN' | 'hi-IN' | 'gu-IN';
   /** Platform operator (§2.1 role matrix). No API grants this — seed/ops only. */
@@ -39,6 +41,7 @@ const UserSchema = new Schema<UserDoc>(
     // lockout (§17.3)
     failedLoginCount: { type: Number, default: 0 },
     lockedUntil: { type: Date, default: null },
+    disabledAt: { type: Date, default: null },
     lastLoginAt: { type: Date, default: null },
     locale: { type: String, enum: ['en-IN', 'hi-IN', 'gu-IN'], default: 'en-IN' },
     superAdmin: { type: Boolean, default: false, select: false },

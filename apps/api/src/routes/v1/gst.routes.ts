@@ -5,6 +5,7 @@ import { companyRepo } from '../../repositories/companyRepo';
 import { imsService } from '../../services/imsService';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { requireCompanyContext } from '../../plugins/tenantScope';
 import { AppError } from '../../utils/AppError';
@@ -12,7 +13,7 @@ import { asyncHandler } from '../../utils/asyncHandler';
 import { ok } from '../../utils/respond';
 
 export const gstRoutes = Router();
-gstRoutes.use(authenticate, tenantResolve('header'));
+gstRoutes.use(authenticate, tenantResolve('header'), requireModule('compliance'));
 
 function period(req: Request): string {
   const p = req.query.period;

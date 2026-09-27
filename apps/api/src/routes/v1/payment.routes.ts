@@ -10,6 +10,7 @@ import {
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 import { idempotency } from '../../middleware/idempotency';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { paymentService } from '../../services/paymentService';
@@ -24,7 +25,7 @@ function dto(doc: Record<string, unknown>) {
 }
 
 export const paymentRoutes = Router();
-paymentRoutes.use(authenticate, tenantResolve('header'));
+paymentRoutes.use(authenticate, tenantResolve('header'), requireModule('money'));
 
 paymentRoutes.get(
   '/',

@@ -3,6 +3,7 @@ import { Router, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { requireCompanyContext } from '../../plugins/tenantScope';
@@ -45,7 +46,7 @@ const manualSchema = z.object({
 });
 
 export const bankingRoutes = Router();
-bankingRoutes.use(authenticate, tenantResolve('header'));
+bankingRoutes.use(authenticate, tenantResolve('header'), requireModule('money'));
 
 bankingRoutes.get(
   '/',

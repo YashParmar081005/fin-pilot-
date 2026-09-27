@@ -7,6 +7,7 @@ import { runCopilotTurn } from '../../ai/gateway';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 import { idempotency } from '../../middleware/idempotency';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { AiConversation, AiUsage } from '../../models/AiConversation';
@@ -21,7 +22,7 @@ import { asyncHandler } from '../../utils/asyncHandler';
 import { ok } from '../../utils/respond';
 
 export const aiRoutes = Router();
-aiRoutes.use(authenticate, tenantResolve('header'), authorize('ai:read'));
+aiRoutes.use(authenticate, tenantResolve('header'), authorize('ai:read'), requireModule('ai'));
 
 aiRoutes.post(
   '/conversations',

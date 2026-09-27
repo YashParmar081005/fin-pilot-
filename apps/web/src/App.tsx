@@ -31,6 +31,7 @@ import { MembersPage } from './features/platform/MembersPage';
 import { BillingPage } from './features/platform/BillingPage';
 import { AdminPage } from './features/platform/AdminPage';
 import { LandingPage } from './features/landing/LandingPage';
+import { hiddenNavFor } from '@finpilot/shared';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   Invoice01Icon,
@@ -63,6 +64,8 @@ interface CompanyRow {
   id: string;
   legalName: string;
   role: { key: string; name: string };
+  /** Sections a platform operator switched off. The API refuses them too. */
+  disabledModules?: string[];
 }
 
 function Logo({ size = '1.35rem', color = 'var(--text)' }: { size?: string; color?: string }) {
@@ -1184,6 +1187,15 @@ function Shell({
 }) {
   const [route, go] = useHashRoute();
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // Sections switched off for this company by a platform operator. The API
+  // refuses their routes regardless; hiding the nav just stops the user
+  // walking into a 403 they cannot do anything about.
+  const hidden = new Set(hiddenNavFor(company.disabledModules ?? []));
+  const nav = NAV.map((section) => ({
+    ...section,
+    items: section.items.filter((i) => !hidden.has(i.key)),
+  })).filter((section) => section.items.length > 0);
   const [unread, setUnread] = useState(0);
   const [imp, setImp] = useState(getImpersonation());
   const [collapsed, setCollapsed] = useState(() => {
@@ -1288,7 +1300,7 @@ function Shell({
               padding: collapsed ? '1rem 0.5rem' : '1rem 0.85rem',
             }}
           >
-            {NAV.map((section) => (
+            {nav.map((section) => (
               <div key={section.group}>
                 {section.group &&
                   (collapsed ? (

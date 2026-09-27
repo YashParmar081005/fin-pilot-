@@ -15,6 +15,7 @@ import { cancelInvoiceSchema } from '@finpilot/shared';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 import { idempotency } from '../../middleware/idempotency';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { validate } from '../../middleware/validate';
 import { billService } from '../../services/billService';
@@ -28,7 +29,7 @@ function dto(doc: Record<string, unknown>) {
 }
 
 export const billRoutes = Router();
-billRoutes.use(authenticate, tenantResolve('header'));
+billRoutes.use(authenticate, tenantResolve('header'), requireModule('purchases'));
 
 billRoutes.get(
   '/',
@@ -80,7 +81,7 @@ billRoutes.post(
 );
 
 export const expenseRoutes = Router();
-expenseRoutes.use(authenticate, tenantResolve('header'));
+expenseRoutes.use(authenticate, tenantResolve('header'), requireModule('purchases'));
 
 expenseRoutes.get(
   '/',

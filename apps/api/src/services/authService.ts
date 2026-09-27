@@ -143,6 +143,13 @@ export const authService = {
       throw new AppError('AUTH_INVALID_CREDENTIALS', 401);
     }
 
+    // A platform operator switched this account off. Checked before the
+    // password so a disabled account cannot be probed for a valid one.
+    if (user.disabledAt) {
+      await padFailure(startedAt);
+      throw new AppError('AUTH_ACCOUNT_DISABLED', 403);
+    }
+
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       await padFailure(startedAt);
       throw new AppError('AUTH_ACCOUNT_LOCKED', 423, {
@@ -219,6 +226,7 @@ export const authService = {
 
     const user = await userRepo.findById(session.userId);
     if (!user) throw new AppError('AUTH_TOKEN_INVALID', 401);
+    if (user.disabledAt) throw new AppError('AUTH_ACCOUNT_DISABLED', 403);
 
     // Rotate: revoke old, issue R' in the SAME family.
     await sessionRepo.revoke(session._id, 'rotation');

@@ -2,6 +2,7 @@
 import { Router, type Request, type Response } from 'express';
 import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
+import { requireModule } from '../../middleware/requireModule';
 import { tenantResolve } from '../../middleware/tenantResolve';
 import { requireCompanyContext } from '../../plugins/tenantScope';
 import { ReportJob } from '../../models/ReportJob';
@@ -19,7 +20,12 @@ function asOf(req: Request): Date {
 }
 
 export const reportRoutes = Router();
-reportRoutes.use(authenticate, tenantResolve('header'), authorize('report:read'));
+reportRoutes.use(
+  authenticate,
+  tenantResolve('header'),
+  authorize('report:read'),
+  requireModule('reports'),
+);
 
 reportRoutes.get(
   '/trial-balance',
@@ -79,7 +85,7 @@ reportRoutes.post(
 );
 
 export const jobRoutes = Router();
-jobRoutes.use(authenticate, tenantResolve('header'));
+jobRoutes.use(authenticate, tenantResolve('header'), requireModule('reports'));
 jobRoutes.get(
   '/:id',
   asyncHandler(async (req: Request, res: Response) => {
