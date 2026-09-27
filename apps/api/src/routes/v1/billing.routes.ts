@@ -24,6 +24,13 @@ billingRoutes.get(
   }),
 );
 
+billingRoutes.get(
+  '/plans',
+  asyncHandler(async (_req: Request, res: Response) => {
+    ok(res, await subscriptionService.planCatalogue());
+  }),
+);
+
 billingRoutes.post(
   '/subscribe',
   idempotency,

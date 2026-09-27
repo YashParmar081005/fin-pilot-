@@ -9,7 +9,8 @@
  * the sanctioned skipTenantScope path (§9.1).
  */
 import { Types } from 'mongoose';
-import { PLAN_LIMITS, upgradePathFor, type Plan } from '@finpilot/shared';
+import { PLANS, PLAN_LIMITS, PLAN_PRICE_PAISE, upgradePathFor, type Plan } from '@finpilot/shared';
+import { getEnv } from '../../config/env';
 import {
   getRazorpaySubscriptionClient,
   type CreatedSubscription,
@@ -126,6 +127,48 @@ export const subscriptionService = {
       limits: org.limits,
       usage: await usageForOrg(org._id, month),
       month,
+    };
+  },
+
+  /**
+   * The plan catalogue, priced. PLAN_PRICE_PAISE existed from the start but
+   * nothing ever sent it to a client, so the billing screen offered "Upgrade to
+   * starter" with no price and no idea what changed — a checkout nobody could
+   * make an informed decision about.
+   *
+   * `configured` reports whether Razorpay actually has keys and a plan id for
+   * that tier. Without it the only feedback was a 503 at click time, which
+   * reads like a broken product rather than an unfinished setup.
+   */
+  async planCatalogue() {
+    const ctx = requireCompanyContext();
+    const org = await orgForCompany(ctx.companyId);
+    const sub = await Subscription.findOne({ organizationId: org._id }).lean();
+    const env = getEnv();
+
+    const razorpayPlanId: Record<Plan, string | undefined> = {
+      free: undefined,
+      starter: env.RAZORPAY_PLAN_ID_STARTER,
+      professional: env.RAZORPAY_PLAN_ID_PROFESSIONAL,
+      enterprise: env.RAZORPAY_PLAN_ID_ENTERPRISE,
+    };
+    const keysPresent = Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET);
+
+    return {
+      currentPlan: org.plan,
+      status: sub?.status ?? 'active',
+      // Surfaced so the screen can say "Razorpay is not configured yet"
+      // instead of failing only once someone clicks subscribe.
+      razorpayConfigured: keysPresent,
+      plans: PLANS.map((plan) => ({
+        key: plan,
+        pricePaise: PLAN_PRICE_PAISE[plan],
+        limits: PLAN_LIMITS[plan],
+        current: plan === org.plan,
+        // free needs no subscription; the rest need keys AND a Razorpay plan id
+        subscribable: plan !== 'free' && keysPresent && Boolean(razorpayPlanId[plan]),
+        configured: plan === 'free' ? true : Boolean(razorpayPlanId[plan]),
+      })),
     };
   },
 
