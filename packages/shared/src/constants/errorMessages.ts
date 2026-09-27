@@ -31,6 +31,8 @@ export const ERROR_MESSAGES: Partial<Record<ErrorCode, string>> = {
   LEDGER_NO_TRANSACTION: 'Ledger writes must run inside a transaction.',
   LEDGER_ACCOUNT_INACTIVE: 'One or more accounts do not exist or are inactive.',
   GST_INVALID_GSTIN: 'The GSTIN is invalid (checksum failed).',
+  GST_COMPANY_GSTIN_MISSING:
+    'This company has no GSTIN yet. Add it on the GST screen before preparing returns.',
   GST_INVALID_RATE_FOR_DATE: 'This GST rate was not in force on the document date.',
   GST_HSN_DIGITS_INSUFFICIENT: 'HSN must be 6 digits once aggregate turnover exceeds ₹5 crore.',
   DOC_SELF_APPROVAL_FORBIDDEN: 'You cannot approve your own submission.',

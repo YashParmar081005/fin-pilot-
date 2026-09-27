@@ -75,8 +75,10 @@ export const GstEngine = {
   /** GSTR-1: outward supplies, B2B per counterparty GSTIN + B2C summary. */
   async generateGstr1(companyId: Types.ObjectId | string, period: string): Promise<GstReturnDoc> {
     const company = await Company.findById(companyId).lean();
-    if (!company?.gstin)
-      throw new AppError('GST_INVALID_GSTIN', 422, { reason: 'company has no GSTIN' });
+    // A company that never had a GSTIN is not a company whose GSTIN failed a
+    // checksum. Saying "checksum failed" sent people hunting for a typo in a
+    // field they had never filled in.
+    if (!company?.gstin) throw new AppError('GST_COMPANY_GSTIN_MISSING', 422);
     const { from, to } = periodRange(period);
 
     // cancelled invoices stay OUT of the return; their reversal nets the TB

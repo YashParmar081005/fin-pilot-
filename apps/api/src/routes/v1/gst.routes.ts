@@ -56,7 +56,7 @@ gstRoutes.post(
   asyncHandler(async (req: Request, res: Response) => {
     const ctx = requireCompanyContext();
     const company = await companyRepo.findById(ctx.companyId);
-    if (!company?.gstin) throw new AppError('GST_INVALID_GSTIN', 422);
+    if (!company?.gstin) throw new AppError('GST_COMPANY_GSTIN_MISSING', 422);
     const p = typeof req.body?.period === 'string' ? req.body.period : '';
     if (!/^\d{4}-\d{2}$/.test(p)) throw new AppError('SYS_VALIDATION_FAILED', 422);
     ok(res, await imsService.sync(p, company.gstin));

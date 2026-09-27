@@ -4,7 +4,8 @@
  * auto-match against the books, act accept / reject / pending.
  */
 import { useState } from 'react';
-import { api, qs } from '../../lib/api';
+import { api, getCompanyId, qs } from '../../lib/api';
+import { validateGstin } from '@finpilot/shared';
 import {
   Badge,
   Btn,
@@ -91,6 +92,76 @@ function ReturnCard({ kind, period }: { kind: 'gstr1' | 'gstr3b'; period: string
   );
 }
 
+/**
+ * Nothing on the GST screen works without the company's own GSTIN: GSTR-1
+ * needs it as the filer, and the IMS sync asks the portal for that GSTIN's
+ * inward records. The company form makes it optional, and there is no company
+ * settings screen — so a company created without one had no way to add it and
+ * every GST action failed. Offer the fix on the screen that needs it.
+ */
+function GstinSetup() {
+  const companies = useLoad(() =>
+    api<{ companies: { id: string; legalName: string; gstin?: string }[] }>(
+      'GET',
+      '/api/v1/companies',
+    ),
+  );
+  const [value, setValue] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+
+  const id = getCompanyId();
+  const current = companies.data?.companies.find((c) => c.id === id);
+  if (companies.busy || companies.error || !current || current.gstin) return null;
+
+  const clean = value.trim().toUpperCase();
+  const ok = validateGstin(clean);
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api('PATCH', `/api/v1/companies/${id}`, { gstin: clean });
+      companies.reload();
+    } catch (err) {
+      setError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card title="This company has no GSTIN yet">
+      <p style={{ color: C.muted, fontSize: '0.88rem', marginTop: 0 }}>
+        GSTR-1 files under your GSTIN and the IMS sync looks up inward invoices by it, so both need
+        it before they can run. GSTR-3B totals work without it.
+      </p>
+      <Row>
+        <Field label="Company GSTIN">
+          <input
+            style={{ ...S.input, margin: 0, width: 240, textTransform: 'uppercase' }}
+            placeholder="24AAAAA0000A1Z5"
+            value={value}
+            maxLength={15}
+            onChange={(e) => setValue(e.target.value)}
+          />
+        </Field>
+        <Btn onClick={() => void save()} disabled={busy || !ok}>
+          {busy ? 'Saving…' : 'Save GSTIN'}
+        </Btn>
+      </Row>
+      {clean.length > 0 && !ok && (
+        <p style={{ color: C.amber, fontSize: '0.8rem', marginBottom: 0 }}>
+          {clean.length < 15
+            ? `${15 - clean.length} character(s) to go — a GSTIN is 15 characters.`
+            : 'That GSTIN fails its checksum. Check it against your registration certificate.'}
+        </p>
+      )}
+      <Err error={error} />
+    </Card>
+  );
+}
+
 export function GstPage() {
   const [period, setPeriod] = useState(thisMonth());
   const [tab, setTab] = useState<'ims' | 'gstr1' | 'gstr3b'>('ims');
@@ -129,6 +200,7 @@ export function GstPage() {
 
   return (
     <div>
+      <GstinSetup />
       <Card
         title="GST compliance"
         actions={
