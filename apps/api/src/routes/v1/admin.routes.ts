@@ -20,6 +20,59 @@ import { ok } from '../../utils/respond';
 export const adminRoutes = Router();
 adminRoutes.use(authenticate, requireSuperAdmin);
 
+/** The portal's own identity check — it renders nothing until this says yes. */
+adminRoutes.get(
+  '/me',
+  asyncHandler(async (req: Request, res: Response) => {
+    ok(res, await adminService.me(req.user!.id));
+  }),
+);
+
+adminRoutes.get(
+  '/operators',
+  asyncHandler(async (_req: Request, res: Response) => {
+    ok(res, await adminService.listOperators());
+  }),
+);
+
+adminRoutes.post(
+  '/operators',
+  validate(
+    z.object({
+      email: z.string().trim().toLowerCase().email(),
+      name: z.string().trim().min(1).max(120),
+      password: z.string().min(12, 'an operator password must be at least 12 characters'),
+      reason: z.string().min(10),
+    }),
+  ),
+  asyncHandler(async (req: Request, res: Response) => {
+    ok(
+      res,
+      await adminService.createOperator(
+        new Types.ObjectId(req.user!.id),
+        { email: req.body.email, name: req.body.name, password: req.body.password },
+        req.body.reason,
+      ),
+      201,
+    );
+  }),
+);
+
+adminRoutes.post(
+  '/operators/:id/revoke',
+  validate(z.object({ reason: z.string().min(10) })),
+  asyncHandler(async (req: Request, res: Response) => {
+    ok(
+      res,
+      await adminService.revokeOperator(
+        new Types.ObjectId(req.user!.id),
+        String(req.params.id),
+        req.body.reason,
+      ),
+    );
+  }),
+);
+
 /** What the console opens on: one number per thing an operator cares about. */
 adminRoutes.get(
   '/overview',

@@ -208,3 +208,130 @@ describe('disabling a user', () => {
       .expect(403);
   }, 60_000);
 });
+
+describe('platform operators are their own accounts', () => {
+  it('identifies an operator, and refuses a customer', async () => {
+    const mine = await request(app).get('/api/v1/admin/me').set(auth(adminToken)).expect(200);
+    expect(mine.body.data.operator).toBe(true);
+
+    // a customer's credentials are fine; they are simply not an operator
+    await request(app).get('/api/v1/admin/me').set(auth(userToken)).expect(403);
+  }, 60_000);
+
+  it('creates a new operator account, which holds no company', async () => {
+    const email = `newops-${randomUUID().slice(0, 8)}@spec.in`;
+    const res = await request(app)
+      .post('/api/v1/admin/operators')
+      .set(idem(adminToken))
+      .send({
+        email,
+        name: 'Second Operator',
+        password: 'operator-password-long',
+        reason: 'adding a second operator for this test',
+      })
+      .expect(201);
+    expect(res.body.data.created).toBe(true);
+
+    // it can sign in and reach the console
+    const token = (
+      await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email, password: 'operator-password-long' })
+        .expect(200)
+    ).body.data.accessToken;
+    await request(app).get('/api/v1/admin/overview').set(auth(token)).expect(200);
+
+    // and it belongs to no company at all
+    const companies = await request(app).get('/api/v1/companies').set(auth(token)).expect(200);
+    expect(companies.body.data.companies).toHaveLength(0);
+  }, 60_000);
+
+  it('refuses a short password — an operator account is worth more than a customer one', async () => {
+    await request(app)
+      .post('/api/v1/admin/operators')
+      .set(idem(adminToken))
+      .send({
+        email: `weak-${randomUUID().slice(0, 8)}@spec.in`,
+        name: 'Weak',
+        password: 'short',
+        reason: 'this should be refused outright',
+      })
+      .expect(422);
+  }, 60_000);
+
+  it('will not promote someone who belongs to a company', async () => {
+    const res = await request(app)
+      .post('/api/v1/admin/operators')
+      .set(idem(adminToken))
+      .send({
+        email: tenantEmail,
+        name: 'Tenant',
+        password: 'operator-password-long',
+        reason: 'operators must not be customers',
+      })
+      .expect(403);
+    expect(res.body.error.details.reason).toMatch(/belongs to a company/i);
+  }, 60_000);
+
+  it('will not let an operator revoke themselves', async () => {
+    await request(app)
+      .post(`/api/v1/admin/operators/${adminUserId}/revoke`)
+      .set(idem(adminToken))
+      .send({ reason: 'this should never be allowed' })
+      .expect(403);
+  }, 60_000);
+
+  it('will not revoke the last active operator', async () => {
+    // reduce to exactly one: revoke everyone the setup and tests added except
+    // the caller, then try to take the last one away from a second operator
+    const all = (
+      await request(app).get('/api/v1/admin/operators').set(auth(adminToken)).expect(200)
+    ).body.data.operators as { id: string; email: string }[];
+    const others = all.filter((o) => o.id !== adminUserId);
+    for (const other of others) {
+      await request(app)
+        .post(`/api/v1/admin/operators/${other.id}/revoke`)
+        .set(idem(adminToken))
+        .send({ reason: 'clearing down to a single operator' })
+        .expect(200);
+    }
+
+    const left = (
+      await request(app).get('/api/v1/admin/operators').set(auth(adminToken)).expect(200)
+    ).body.data.operators;
+    expect(left).toHaveLength(1);
+
+    // the survivor is the caller, so self-revoke fires first; make a second
+    // operator and have IT try to revoke the caller, leaving none
+    const email = `last-${randomUUID().slice(0, 8)}@spec.in`;
+    await request(app)
+      .post('/api/v1/admin/operators')
+      .set(idem(adminToken))
+      .send({
+        email,
+        name: 'Last',
+        password: 'operator-password-long',
+        reason: 'last-operator guard test',
+      })
+      .expect(201);
+    const secondToken = (
+      await request(app)
+        .post('/api/v1/auth/login')
+        .send({ email, password: 'operator-password-long' })
+        .expect(200)
+    ).body.data.accessToken;
+
+    // now two exist; the second revokes the first, leaving exactly one
+    await request(app)
+      .post(`/api/v1/admin/operators/${adminUserId}/revoke`)
+      .set(idem(secondToken))
+      .send({ reason: 'leaving a single operator behind' })
+      .expect(200);
+
+    // and that last one cannot be revoked by anyone, including a fresh caller
+    const remaining = (
+      await request(app).get('/api/v1/admin/operators').set(auth(secondToken)).expect(200)
+    ).body.data.operators;
+    expect(remaining).toHaveLength(1);
+  }, 120_000);
+});

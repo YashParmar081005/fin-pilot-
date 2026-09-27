@@ -15,6 +15,7 @@ import { Invoice } from '../../models/Invoice';
 import { Bill } from '../../models/Bill';
 import { Membership } from '../../models/Membership';
 import { sessionRepo } from '../../repositories/sessionRepo';
+import { hashPassword } from '../passwordService';
 import { invalidateModuleCache } from '../../middleware/requireModule';
 import { MODULE_KEYS } from '@finpilot/shared';
 import { signImpersonationToken } from '../../services/tokenService';
@@ -362,6 +363,138 @@ export const adminService = {
         at: r.at,
       })),
       nextCursor: rows.length === limit ? String(rows[rows.length - 1]!._id) : null,
+    };
+  },
+
+  /**
+   * Platform operators are their own accounts, not customers wearing a second
+   * hat: an operator may hold no company membership, and a user who belongs to
+   * a company may not be promoted. Keeping the two apart is what stops "I was
+   * only checking my own books" and "I was operating the platform" from being
+   * the same session.
+   *
+   * The very first operator is made by the admin:grant script, out of band. If
+   * the console could mint the first one, compromising any account would be
+   * enough to take the platform.
+   */
+  async listOperators() {
+    const operators = await User.find({ superAdmin: true })
+      .select('email name disabledAt lastLoginAt createdAt')
+      .sort({ _id: 1 })
+      .lean();
+    // An operator holding memberships is a rule violation from before the
+    // accounts were separated; surface it rather than hide it.
+    const memberships = await Membership.find({
+      userId: { $in: operators.map((o) => o._id) },
+    }).lean();
+    const memberCount = new Map<string, number>();
+    for (const m of memberships) {
+      const key = String(m.userId);
+      memberCount.set(key, (memberCount.get(key) ?? 0) + 1);
+    }
+    return {
+      operators: operators.map((o) => ({
+        id: String(o._id),
+        email: o.email,
+        name: o.name,
+        disabled: Boolean(o.disabledAt),
+        lastLoginAt: o.lastLoginAt ?? null,
+        createdAt: o.createdAt,
+        companyMemberships: memberCount.get(String(o._id)) ?? 0,
+      })),
+    };
+  },
+
+  async createOperator(
+    adminUserId: Types.ObjectId,
+    input: { email: string; name: string; password: string },
+    reason: string,
+  ) {
+    const email = input.email.trim().toLowerCase();
+    const existing = await User.findOne({ email }).select('+superAdmin').lean();
+
+    if (existing) {
+      if (existing.superAdmin === true) {
+        throw new AppError('SYS_DUPLICATE_KEY', 409, { reason: 'already an operator' });
+      }
+      // Promoting an existing customer would blur the two roles, which is the
+      // thing separate operator accounts exist to prevent.
+      const memberships = await Membership.countDocuments({ userId: existing._id });
+      if (memberships > 0) {
+        throw new AppError('AUTH_FORBIDDEN', 403, {
+          reason: 'that account belongs to a company; operators may not be customers',
+        });
+      }
+      await User.updateOne({ _id: existing._id }, { superAdmin: true, disabledAt: null });
+      await AdminAudit.create({
+        adminUserId,
+        action: 'operator.promoted',
+        targetType: 'User',
+        targetId: existing._id,
+        reason,
+        meta: { email },
+      });
+      return { id: String(existing._id), email, created: false };
+    }
+
+    const user = await User.create({
+      email,
+      name: input.name,
+      passwordHash: await hashPassword(input.password),
+      superAdmin: true,
+      // An operator account is created by another operator, so there is nobody
+      // to send a verification mail to but the operator themselves.
+      emailVerifiedAt: new Date(),
+    });
+    await AdminAudit.create({
+      adminUserId,
+      action: 'operator.created',
+      targetType: 'User',
+      targetId: user._id,
+      reason,
+      meta: { email },
+    });
+    return { id: String(user._id), email, created: true };
+  },
+
+  /** Take the flag away. The account survives; it just stops being an operator. */
+  async revokeOperator(adminUserId: Types.ObjectId, userId: string, reason: string) {
+    if (String(userId) === String(adminUserId)) {
+      throw new AppError('AUTH_FORBIDDEN', 403, { reason: 'cannot revoke yourself' });
+    }
+    const user = await User.findById(userId).select('+superAdmin').lean();
+    if (!user) throw new AppError('SYS_NOT_FOUND', 404);
+    if (user.superAdmin !== true) throw new AppError('SYS_NOT_FOUND', 404);
+
+    const remaining = await User.countDocuments({ superAdmin: true, disabledAt: null });
+    if (remaining <= 1) {
+      throw new AppError('AUTH_FORBIDDEN', 403, {
+        reason: 'that is the last active operator; the platform would be unreachable',
+      });
+    }
+
+    await User.updateOne({ _id: user._id }, { superAdmin: false });
+    await sessionRepo.revokeAllForUser(user._id, 'admin');
+    await AdminAudit.create({
+      adminUserId,
+      action: 'operator.revoked',
+      targetType: 'User',
+      targetId: user._id,
+      reason,
+      meta: { email: user.email },
+    });
+    return { id: String(user._id), email: user.email };
+  },
+
+  /** Who am I, for the portal's own header and guard. */
+  async me(userId: string) {
+    const user = await User.findById(userId).select('email name superAdmin').lean();
+    if (!user) throw new AppError('SYS_NOT_FOUND', 404);
+    return {
+      id: String(user._id),
+      email: user.email,
+      name: user.name,
+      operator: user.superAdmin === true,
     };
   },
 };
